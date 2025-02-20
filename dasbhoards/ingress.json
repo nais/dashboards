@@ -1,0 +1,357 @@
+{
+   "description": "Application access logs from the load balancer\n",
+   "graphTooltip": 1,
+   "panels": [
+      {
+         "datasource": {
+            "type": "datasource",
+            "uid": "-- Mixed --"
+         },
+         "fieldConfig": {
+            "defaults": {
+               "color": {
+                  "mode": "thresholds"
+               },
+               "custom": {
+                  "lineWidth": 0
+               },
+               "thresholds": {
+                  "steps": [
+                     {
+                        "color": "green",
+                        "value": null
+                     }
+                  ]
+               },
+               "unit": "short"
+            },
+            "overrides": [
+               {
+                  "matcher": {
+                     "id": "byRegexp",
+                     "options": "/^4.*/"
+                  },
+                  "properties": [
+                     {
+                        "id": "color",
+                        "value": {
+                           "fixedColor": "orange",
+                           "mode": "fixed"
+                        }
+                     }
+                  ]
+               },
+               {
+                  "matcher": {
+                     "id": "byRegexp",
+                     "options": "/^5.*/"
+                  },
+                  "properties": [
+                     {
+                        "id": "color",
+                        "value": {
+                           "fixedColor": "red",
+                           "mode": "fixed"
+                        }
+                     }
+                  ]
+               }
+            ]
+         },
+         "gridPos": {
+            "h": 5,
+            "w": 12,
+            "x": 0,
+            "y": 0
+         },
+         "id": 1,
+         "interval": "2m",
+         "options": {
+            "barWidth": 0.63,
+            "legend": {
+               "displayMode": "table",
+               "placement": "right",
+               "sortDesc": true
+            },
+            "showValue": false,
+            "stacking": "normal",
+            "xTickLabelSpacing": 100
+         },
+         "pluginVersion": "v11.4.0",
+         "targets": [
+            {
+               "datasource": {
+                  "type": "prometheus",
+                  "uid": "$prometheus"
+               },
+               "expr": "sum by (status) (\n  increase(\n    nginx_ingress_controller_requests{\n      namespace=~\"$namespace\",\n      host=~\"$host\",\n      status=~\"$status\",\n      method=~\"$method\",\n    }[$__interval]\n  )\n)\n",
+               "legendFormat": "{{status}}\n"
+            }
+         ],
+         "title": "Request Rate",
+         "type": "barchart"
+      },
+      {
+         "datasource": {
+            "type": "datasource",
+            "uid": "-- Mixed --"
+         },
+         "fieldConfig": {
+            "defaults": {
+               "custom": {
+                  "fillOpacity": 10,
+                  "scaleDistribution": {
+                     "log": 10,
+                     "type": "log"
+                  },
+                  "showPoints": "never"
+               },
+               "unit": "s"
+            }
+         },
+         "gridPos": {
+            "h": 5,
+            "w": 12,
+            "x": 12,
+            "y": 0
+         },
+         "id": 2,
+         "interval": "1m",
+         "options": {
+            "legend": {
+               "calcs": [
+                  "lastNotNull",
+                  "max"
+               ],
+               "displayMode": "list"
+            }
+         },
+         "pluginVersion": "v11.4.0",
+         "targets": [
+            {
+               "datasource": {
+                  "type": "prometheus",
+                  "uid": "$prometheus"
+               },
+               "expr": "histogram_quantile(\n  0.95,\n  sum by (le, host) (\n    rate(\n      nginx_ingress_controller_request_duration_seconds_bucket{\n        namespace=~\"$namespace\",\n        host=~\"$host\",\n        status=~\"$status\",\n        method=~\"$method\",\n      }[$__rate_interval]\n    )\n  )\n)\n",
+               "legendFormat": "$host 95%\n"
+            },
+            {
+               "datasource": {
+                  "type": "prometheus",
+                  "uid": "$prometheus"
+               },
+               "expr": "histogram_quantile(\n  0.99,\n  sum by (le, host) (\n    rate(\n      nginx_ingress_controller_request_duration_seconds_bucket{\n        namespace=~\"$namespace\",\n        host=~\"$host\",\n        status=~\"$status\",\n        method=~\"$method\",\n      }[$__rate_interval]\n    )\n  )\n)\n",
+               "legendFormat": "$host 99%\n"
+            }
+         ],
+         "title": "Request Dureation",
+         "type": "timeseries"
+      },
+      {
+         "datasource": {
+            "type": "datasource",
+            "uid": "-- Mixed --"
+         },
+         "gridPos": {
+            "h": 15,
+            "w": 24,
+            "x": 0,
+            "y": 15
+         },
+         "id": 3,
+         "options": {
+            "showTime": true
+         },
+         "pluginVersion": "v11.4.0",
+         "targets": [
+            {
+               "datasource": {
+                  "type": "loki",
+                  "uid": "$loki"
+               },
+               "expr": "{\n  service_name=\"nais-ingress\",\n  service_namespace=\"$namespace\"\n}\n  |= `$search`\n  | json\n  | __error__=``\n  | url_domain = `$host`\n  | http_request_method =~ `$method`\n  | http_response_status_code =~ `$status`\n  | line_format `{{.remote_addr}} {{.message}} {{.http_response_status_code }} {{.destination_address}} {{.user_agent_original}}`\n"
+            }
+         ],
+         "title": "Ingress Logs",
+         "type": "logs"
+      }
+   ],
+   "schemaVersion": 39,
+   "templating": {
+      "list": [
+         {
+            "current": {
+               "selected": false,
+               "text": "dev",
+               "value": "dev"
+            },
+            "name": "env",
+            "options": [
+               {
+                  "selected": true,
+                  "text": "dev",
+                  "value": "dev"
+               },
+               {
+                  "selected": false,
+                  "text": "prod",
+                  "value": "prod"
+               }
+            ],
+            "query": "dev : dev,prod : prod",
+            "type": "custom"
+         },
+         {
+            "hide": 2,
+            "name": "prometheus",
+            "query": "prometheus",
+            "regex": "/$env-gcp/",
+            "type": "datasource"
+         },
+         {
+            "hide": 2,
+            "name": "loki",
+            "query": "loki",
+            "regex": "/$env-gcp-loki/",
+            "type": "datasource"
+         },
+         {
+            "datasource": {
+               "type": "prometheus",
+               "uid": "${prometheus}"
+            },
+            "name": "namespace",
+            "query": "label_values(nginx_ingress_controller_requests, namespace)",
+            "type": "query"
+         },
+         {
+            "datasource": {
+               "type": "prometheus",
+               "uid": "${prometheus}"
+            },
+            "name": "host",
+            "query": "label_values(nginx_ingress_controller_requests{namespace=~\"$namespace\"}, host)",
+            "type": "query"
+         },
+         {
+            "current": {
+               "selected": false,
+               "text": "",
+               "value": ""
+            },
+            "name": "search",
+            "options": [
+               {
+                  "selected": true,
+                  "text": "",
+                  "value": ""
+               }
+            ],
+            "query": "",
+            "type": "textbox"
+         },
+         {
+            "current": {
+               "selected": false,
+               "text": ".*",
+               "value": ".*"
+            },
+            "name": "status",
+            "options": [
+               {
+                  "selected": true,
+                  "text": ".*",
+                  "value": ".*"
+               },
+               {
+                  "selected": false,
+                  "text": "2\\d{2}",
+                  "value": "2\\d{2}"
+               },
+               {
+                  "selected": false,
+                  "text": "2\\d{2}",
+                  "value": "2\\d{2}"
+               },
+               {
+                  "selected": false,
+                  "text": "3\\d{2}",
+                  "value": "3\\d{2}"
+               },
+               {
+                  "selected": false,
+                  "text": "4\\d{2}",
+                  "value": "4\\d{2}"
+               },
+               {
+                  "selected": false,
+                  "text": "5\\d{2}",
+                  "value": "5\\d{2}"
+               }
+            ],
+            "query": ".* : .*,2\\d{2} : 2\\d{2},2\\d{2} : 2\\d{2},3\\d{2} : 3\\d{2},4\\d{2} : 4\\d{2},5\\d{2} : 5\\d{2}",
+            "type": "custom"
+         },
+         {
+            "current": {
+               "selected": false,
+               "text": ".*",
+               "value": ".*"
+            },
+            "name": "method",
+            "options": [
+               {
+                  "selected": true,
+                  "text": ".*",
+                  "value": ".*"
+               },
+               {
+                  "selected": false,
+                  "text": "GET",
+                  "value": "GET"
+               },
+               {
+                  "selected": false,
+                  "text": "POST",
+                  "value": "POST"
+               },
+               {
+                  "selected": false,
+                  "text": "PUT",
+                  "value": "PUT"
+               },
+               {
+                  "selected": false,
+                  "text": "PATCH",
+                  "value": "PATCH"
+               },
+               {
+                  "selected": false,
+                  "text": "DELETE",
+                  "value": "DELETE"
+               },
+               {
+                  "selected": false,
+                  "text": "HEAD",
+                  "value": "HEAD"
+               },
+               {
+                  "selected": false,
+                  "text": "OPTIONS",
+                  "value": "OPTIONS"
+               }
+            ],
+            "query": ".* : .*,GET : GET,POST : POST,PUT : PUT,PATCH : PATCH,DELETE : DELETE,HEAD : HEAD,OPTIONS : OPTIONS",
+            "type": "custom"
+         }
+      ]
+   },
+   "time": {
+      "from": "now-6h",
+      "to": "now"
+   },
+   "timezone": "utc",
+   "title": "Ingress Logs",
+   "uid": "nais-ingress-2"
+}
