@@ -1,5 +1,6 @@
 {
-   "description": "Application access logs from the load balancer\n",
+   "description": "Application access logs from the load balancer (ingress controller).\n",
+   "editable": false,
    "graphTooltip": 1,
    "panels": [
       {
@@ -178,13 +179,18 @@
       }
    ],
    "schemaVersion": 39,
+   "tags": [
+      "nais",
+      "application",
+      "ingress"
+   ],
    "templating": {
       "list": [
          {
             "current": {
                "selected": false,
-               "text": "dev",
-               "value": "dev"
+               "text": "prod",
+               "value": "prod"
             },
             "name": "env",
             "options": [
@@ -254,56 +260,51 @@
          {
             "current": {
                "selected": false,
-               "text": ".*",
+               "text": "All",
                "value": ".*"
             },
             "name": "status",
             "options": [
                {
                   "selected": true,
-                  "text": ".*",
+                  "text": "All",
                   "value": ".*"
                },
                {
                   "selected": false,
-                  "text": "2\\d{2}",
+                  "text": "2xx",
                   "value": "2\\d{2}"
                },
                {
                   "selected": false,
-                  "text": "2\\d{2}",
-                  "value": "2\\d{2}"
-               },
-               {
-                  "selected": false,
-                  "text": "3\\d{2}",
+                  "text": "3xx",
                   "value": "3\\d{2}"
                },
                {
                   "selected": false,
-                  "text": "4\\d{2}",
+                  "text": "4xx",
                   "value": "4\\d{2}"
                },
                {
                   "selected": false,
-                  "text": "5\\d{2}",
+                  "text": "5xx",
                   "value": "5\\d{2}"
                }
             ],
-            "query": ".* : .*,2\\d{2} : 2\\d{2},2\\d{2} : 2\\d{2},3\\d{2} : 3\\d{2},4\\d{2} : 4\\d{2},5\\d{2} : 5\\d{2}",
+            "query": "All : .*,2xx : 2\\d{2},3xx : 3\\d{2},4xx : 4\\d{2},5xx : 5\\d{2}",
             "type": "custom"
          },
          {
             "current": {
                "selected": false,
-               "text": ".*",
+               "text": "All",
                "value": ".*"
             },
             "name": "method",
             "options": [
                {
                   "selected": true,
-                  "text": ".*",
+                  "text": "All",
                   "value": ".*"
                },
                {
@@ -342,16 +343,16 @@
                   "value": "OPTIONS"
                }
             ],
-            "query": ".* : .*,GET : GET,POST : POST,PUT : PUT,PATCH : PATCH,DELETE : DELETE,HEAD : HEAD,OPTIONS : OPTIONS",
+            "query": "All : .*,GET : GET,POST : POST,PUT : PUT,PATCH : PATCH,DELETE : DELETE,HEAD : HEAD,OPTIONS : OPTIONS",
             "type": "custom"
          }
       ]
    },
    "time": {
-      "from": "now-6h",
+      "from": "now-1h",
       "to": "now"
    },
-   "timezone": "utc",
+   "timezone": "default",
    "title": "Ingress Logs",
-   "uid": "nais-ingress-2"
+   "uid": "ingress-logs"
 }
