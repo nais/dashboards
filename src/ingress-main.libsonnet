@@ -7,11 +7,15 @@ local variables = import './ingress-variables.libsonnet';
 local queries = import './ingress-queries.libsonnet';
 
 g.dashboard.new('Ingress Logs')
-+ g.dashboard.withUid('nais-ingress-2')
++ g.dashboard.withUid('ingress-logs')
 + g.dashboard.withDescription(|||
-  Application access logs from the load balancer
+  Application access logs from the load balancer (ingress controller).
 |||)
++ g.dashboard.withTags(['nais', 'application', 'ingress'])
++ g.dashboard.time.withFrom('now-1h')
++ g.dashboard.withTimezone('default')
 + g.dashboard.graphTooltip.withSharedCrosshair()
++ g.dashboard.withEditable(false)
 + g.dashboard.withVariables([
   variables.env,
   variables.prometheus,

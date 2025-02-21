@@ -3,7 +3,7 @@ local ingress = import 'src/ingress-main.libsonnet';
 
 {
   dashboards: [
-    grr.dashboard.new('nais-ingress-2', ingress)
+    grr.dashboard.new('ingress-logs', ingress)
     + grr.resource.addMetadata('folder', 'xwFwBYVmk'),
   ],
 }

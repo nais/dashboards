@@ -3,7 +3,8 @@ local var = g.dashboard.variable;
 
 {
   env:
-    var.custom.new('env', ['dev', 'prod']),
+    var.custom.new('env', ['dev', 'prod'])
+    + var.custom.generalOptions.withCurrent('prod'),
 
   prometheus:
     var.datasource.new('prometheus', 'prometheus')
@@ -35,9 +36,23 @@ local var = g.dashboard.variable;
     var.textbox.new('search', ''),
 
   status:
-    var.custom.new('status', ['.*', '2\\d{2}', '2\\d{2}', '3\\d{2}', '4\\d{2}', '5\\d{2}']),
+    var.custom.new('status', [
+      { key: 'All', value: '.*' },
+      { key: '2xx', value: '2\\d{2}' },
+      { key: '3xx', value: '3\\d{2}' },
+      { key: '4xx', value: '4\\d{2}' },
+      { key: '5xx', value: '5\\d{2}' },
+    ]),
 
   method:
-    var.custom.new('method', ['.*', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS']),
-
+    var.custom.new('method', [
+      { key: 'All', value: '.*' },
+      'GET',
+      'POST',
+      'PUT',
+      'PATCH',
+      'DELETE',
+      'HEAD',
+      'OPTIONS',
+    ]),
 }
