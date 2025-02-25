@@ -31,7 +31,7 @@ g.dashboard.new('Ingress Logs')
     panels.barChart.stacked('Request Rate', queries.requestRate)
     + g.panel.barChart.gridPos.withW(12)
     + g.panel.barChart.gridPos.withH(5),
-    panels.timeSeries.seconds('Request Dureation', queries.requestDurationQuantile)
+    panels.timeSeries.seconds('Request Duration', queries.requestDurationQuantile)
     + g.panel.barChart.gridPos.withW(12)
     + g.panel.barChart.gridPos.withH(5),
     panels.logs.base('Ingress Logs', queries.ingressLogs)
