@@ -2,6 +2,20 @@
   "description": "This dashboard works with postgres_exporter for prometheus",
   "editable": false,
   "graphTooltip": 0,
+  "links": [
+    {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": false,
+      "tags": [],
+      "targetBlank": true,
+      "title": "Source",
+      "tooltip": "Source",
+      "type": "link",
+      "url": "https://github.com/nais/dashboards/blob/main/dasbhoards/zalando-postgres-operator.json"
+    }
+  ],
   "panels": [
     {
       "datasource": {
