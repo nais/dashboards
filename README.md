@@ -18,7 +18,7 @@ To compile the Jsonnet files into Grafana-compatible JSON files, you can use the
 
 All dashboards are defined in the `src` directory. The `src` directory contains a set of Jsonnet files that define the dashboards. A helper script `g.libsonnet` is used to import the Grafonnet library.
 
-Most dasbhoards follow the following structure:
+Most dashboards follow the following structure:
 
 - `src/<dashboard-name>-main.libsonnet`: The main dashboard definition.
 - `src/<dashboard-name>-variables.libsonnet`: The variable definitions.

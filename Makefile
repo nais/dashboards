@@ -9,7 +9,7 @@ fmt:
 	jsonnetfmt -i src/*.libsonnet
 
 compile:
-	jsonnet -J vendor src/ingress-main.libsonnet > dasbhoards/ingress.json
+	jsonnet -J vendor src/ingress-main.libsonnet > dashboards/ingress.json
 
 deploy:
 	grr apply grr.jsonnet
