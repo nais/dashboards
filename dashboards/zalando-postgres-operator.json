@@ -1562,6 +1562,7 @@
       },
       "fieldConfig": {
         "defaults": {
+          "unit": "s",
           "color": {
             "mode": "palette-classic"
           },
@@ -1661,6 +1662,7 @@
         "uid": "${datasource}"
       },
       "fieldConfig": {
+        "unit": "s",
         "defaults": {
           "color": {
             "mode": "thresholds"
@@ -1767,6 +1769,7 @@
         "uid": "${datasource}"
       },
       "fieldConfig": {
+        "unit": "s",
         "defaults": {
           "color": {
             "mode": "palette-classic"
@@ -1868,6 +1871,7 @@
         "uid": "${datasource}"
       },
       "fieldConfig": {
+        "unit": "s",
         "defaults": {
           "color": {
             "mode": "thresholds"
@@ -1974,6 +1978,7 @@
         "uid": "${datasource}"
       },
       "fieldConfig": {
+        "unit": "s",
         "defaults": {
           "color": {
             "mode": "palette-classic"
@@ -2072,6 +2077,7 @@
         "uid": "${datasource}"
       },
       "fieldConfig": {
+        "unit": "s",
         "defaults": {
           "color": {
             "mode": "thresholds"
