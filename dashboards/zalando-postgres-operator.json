@@ -1662,8 +1662,8 @@
         "uid": "${datasource}"
       },
       "fieldConfig": {
-        "unit": "s",
         "defaults": {
+          "unit": "s",
           "color": {
             "mode": "thresholds"
           },
@@ -1769,8 +1769,8 @@
         "uid": "${datasource}"
       },
       "fieldConfig": {
-        "unit": "s",
         "defaults": {
+          "unit": "s",
           "color": {
             "mode": "palette-classic"
           },
@@ -1871,8 +1871,8 @@
         "uid": "${datasource}"
       },
       "fieldConfig": {
-        "unit": "s",
         "defaults": {
+          "unit": "s",
           "color": {
             "mode": "thresholds"
           },
@@ -1978,8 +1978,8 @@
         "uid": "${datasource}"
       },
       "fieldConfig": {
-        "unit": "s",
         "defaults": {
+          "unit": "s",
           "color": {
             "mode": "palette-classic"
           },
@@ -2077,8 +2077,8 @@
         "uid": "${datasource}"
       },
       "fieldConfig": {
-        "unit": "s",
         "defaults": {
+          "unit": "s",
           "color": {
             "mode": "thresholds"
           },
