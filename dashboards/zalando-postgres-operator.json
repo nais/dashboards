@@ -1644,7 +1644,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "topk(10, rate(pg_stat_statements_block_read_seconds_total{namespace=\"$namespace\", pod=\"$instance\"}[5m])) * on(queryid, pod) group_left(query) pg_stat_statements_query_id",
+          "expr": "topk(5, rate(pg_stat_statements_block_read_seconds_total{namespace=\"$namespace\", pod=\"$instance\"}[15m])) * on(queryid, pod) group_left(query) pg_stat_statements_query_id",
           "format": "time_series",
           "instant": false,
           "legendFormat": "{{query}}",
@@ -1652,7 +1652,7 @@
           "refId": "A"
         }
       ],
-      "title": "Top queries by read bytes",
+      "title": "Top queries by seconds spent reading",
       "type": "timeseries"
     },
     {
@@ -1663,57 +1663,35 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
           },
           "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto",
+              "wrapText": true
             },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
+            "filterable": false,
+            "inspect": false,
+            "minWidth": 50
           },
           "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
+          "thresholds": {}
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "query"
+            },
+            "properties": [
               {
-                "color": "green",
-                "value": 0
-              },
-              {
-                "color": "red",
-                "value": 80
+                "id": "custom.width",
+                "value": 731
               }
             ]
           }
-        },
-        "overrides": []
+        ]
       },
       "gridPos": {
         "h": 8,
@@ -1721,19 +1699,20 @@
         "x": 12,
         "y": 14
       },
-      "id": 71,
+      "id": 72,
+      "maxDataPoints": 50,
       "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
         },
-        "tooltip": {
-          "hideZeros": false,
-          "mode": "single",
-          "sort": "none"
-        }
+        "showHeader": false,
+        "sortBy": []
       },
       "pluginVersion": "12.1.1",
       "targets": [
@@ -1744,17 +1723,43 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "topk(10, rate( pg_stat_statements_seconds_total{namespace=\"$namespace\", pod=\"$instance\"} [5m])) * on(queryid, pod) group_left(query) pg_stat_statements_query_id",
-          "format": "time_series",
-          "instant": false,
-          "interval": "",
-          "legendFormat": "{{query}}",
-          "range": true,
+          "expr": "topk(5, rate(pg_stat_statements_block_read_seconds_total{namespace=\"$namespace\", pod=\"$instance\"}[15m])) * on(queryid, pod) group_left(query) pg_stat_statements_query_id",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
           "refId": "A"
         }
       ],
-      "title": "Top queries by time used",
-      "type": "timeseries"
+      "title": "Top queries by seconds spent reading",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "app": true,
+              "cluster_name": true,
+              "container": true,
+              "datname": true,
+              "endpoint": true,
+              "instance": true,
+              "job": true,
+              "namespace": true,
+              "pod": true,
+              "queryid": true,
+              "team": true,
+              "user": true
+            },
+            "includeByName": {},
+            "indexByName": {},
+            "renameByName": {
+              "Time": ""
+            }
+          }
+        }
+      ],
+      "type": "table"
     },
     {
       "datasource": {
@@ -1820,9 +1825,9 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 22
+        "y": 14
       },
-      "id": 74,
+      "id": 71,
       "options": {
         "legend": {
           "calcs": [],
@@ -1844,14 +1849,17 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "topk(10, rate(pg_stat_statements_block_write_seconds_total{namespace=\"$namespace\", pod=\"$instance\"}[5m])) * on(queryid, pod) group_left(query) pg_stat_statements_query_id",
+          "exemplar": false,
+          "expr": "topk(10, rate( pg_stat_statements_seconds_total{namespace=\"$namespace\", pod=\"$instance\"} [5m])) * on(queryid, pod) group_left(query) pg_stat_statements_query_id",
+          "format": "time_series",
           "instant": false,
+          "interval": "",
           "legendFormat": "{{query}}",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Top queries by write bytes",
+      "title": "Top queries by time used",
       "type": "timeseries"
     },
     {
@@ -1862,57 +1870,35 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
           },
           "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto",
+              "wrapText": true
             },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
+            "filterable": false,
+            "inspect": false,
+            "minWidth": 50
           },
           "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
+          "thresholds": {}
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "query"
+            },
+            "properties": [
               {
-                "color": "green",
-                "value": 0
-              },
-              {
-                "color": "red",
-                "value": 80
+                "id": "custom.width",
+                "value": 731
               }
             ]
           }
-        },
-        "overrides": []
+        ]
       },
       "gridPos": {
         "h": 8,
@@ -1920,19 +1906,20 @@
         "x": 12,
         "y": 22
       },
-      "id": 75,
+      "id": 72,
+      "maxDataPoints": 50,
       "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
         },
-        "tooltip": {
-          "hideZeros": false,
-          "mode": "single",
-          "sort": "none"
-        }
+        "showHeader": false,
+        "sortBy": []
       },
       "pluginVersion": "12.1.1",
       "targets": [
@@ -1942,15 +1929,44 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "topk(10, rate(pg_stat_statements_calls_total{namespace=\"$namespace\", pod=\"$instance\"}[15m])) * on(queryid, pod) group_left(query) pg_stat_statements_query_id",
-          "instant": false,
-          "legendFormat": "{{query}}",
-          "range": true,
+          "exemplar": false,
+          "expr": "topk(10, rate( pg_stat_statements_seconds_total{namespace=\"$namespace\", pod=\"$instance\"} [5m])) * on(queryid, pod) group_left(query) pg_stat_statements_query_id",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
           "refId": "A"
         }
       ],
-      "title": "Top queries by calls",
-      "type": "timeseries"
+      "title": "Top queries by time used",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "app": true,
+              "cluster_name": true,
+              "container": true,
+              "datname": true,
+              "endpoint": true,
+              "instance": true,
+              "job": true,
+              "namespace": true,
+              "pod": true,
+              "queryid": true,
+              "team": true,
+              "user": true
+            },
+            "includeByName": {},
+            "indexByName": {},
+            "renameByName": {
+              "Time": ""
+            }
+          }
+        }
+      ],
+      "type": "table"
     },
     {
       "datasource": {
@@ -2018,6 +2034,414 @@
         "x": 0,
         "y": 30
       },
+      "id": 74,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.1.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "topk(10, rate(pg_stat_statements_block_write_seconds_total{namespace=\"$namespace\", pod=\"$instance\"}[5m])) * on(queryid, pod) group_left(query) pg_stat_statements_query_id",
+          "instant": false,
+          "legendFormat": "{{query}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Top queries by time spent writing",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto",
+              "wrapText": true
+            },
+            "filterable": false,
+            "inspect": false,
+            "minWidth": 50
+          },
+          "mappings": [],
+          "thresholds": {}
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "query"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 731
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 30
+      },
+      "id": 72,
+      "maxDataPoints": 50,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": false,
+        "sortBy": []
+      },
+      "pluginVersion": "12.1.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "topk(10, rate(pg_stat_statements_block_write_seconds_total{namespace=\"$namespace\", pod=\"$instance\"}[5m])) * on(queryid, pod) group_left(query) pg_stat_statements_query_id",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "title": "Top queries by time spent writing",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "app": true,
+              "cluster_name": true,
+              "container": true,
+              "datname": true,
+              "endpoint": true,
+              "instance": true,
+              "job": true,
+              "namespace": true,
+              "pod": true,
+              "queryid": true,
+              "team": true,
+              "user": true
+            },
+            "includeByName": {},
+            "indexByName": {},
+            "renameByName": {
+              "Time": ""
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 38
+      },
+      "id": 75,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.1.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "topk(10, rate(pg_stat_statements_calls_total{namespace=\"$namespace\", pod=\"$instance\"}[15m])) * on(queryid, pod) group_left(query) pg_stat_statements_query_id",
+          "instant": false,
+          "legendFormat": "{{query}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Top queries by calls",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto",
+              "wrapText": true
+            },
+            "filterable": false,
+            "inspect": false,
+            "minWidth": 50
+          },
+          "mappings": [],
+          "thresholds": {}
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "query"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 731
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 38
+      },
+      "id": 72,
+      "maxDataPoints": 50,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": false,
+        "sortBy": []
+      },
+      "pluginVersion": "12.1.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "topk(10, rate(pg_stat_statements_calls_total{namespace=\"$namespace\", pod=\"$instance\"}[15m])) * on(queryid, pod) group_left(query) pg_stat_statements_query_id",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "title": "Top queries by calls",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "app": true,
+              "cluster_name": true,
+              "container": true,
+              "datname": true,
+              "endpoint": true,
+              "instance": true,
+              "job": true,
+              "namespace": true,
+              "pod": true,
+              "queryid": true,
+              "team": true,
+              "user": true
+            },
+            "includeByName": {},
+            "indexByName": {},
+            "renameByName": {
+              "Time": ""
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 46
+      },
       "id": 76,
       "options": {
         "legend": {
@@ -2056,7 +2480,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 38
+        "y": 54
       },
       "id": 30,
       "panels": [],
@@ -2129,7 +2553,7 @@
         "h": 7,
         "w": 8,
         "x": 0,
-        "y": 39
+        "y": 55
       },
       "id": 1,
       "options": {
@@ -2236,7 +2660,7 @@
         "h": 7,
         "w": 8,
         "x": 8,
-        "y": 39
+        "y": 55
       },
       "id": 60,
       "options": {
@@ -2350,7 +2774,7 @@
         "h": 7,
         "w": 8,
         "x": 16,
-        "y": 39
+        "y": 55
       },
       "id": 8,
       "options": {
@@ -2456,7 +2880,7 @@
         "h": 7,
         "w": 8,
         "x": 0,
-        "y": 46
+        "y": 62
       },
       "id": 5,
       "options": {
@@ -2560,7 +2984,7 @@
         "h": 7,
         "w": 8,
         "x": 8,
-        "y": 46
+        "y": 62
       },
       "id": 6,
       "options": {
@@ -2666,7 +3090,7 @@
         "h": 7,
         "w": 8,
         "x": 16,
-        "y": 46
+        "y": 62
       },
       "id": 3,
       "options": {
@@ -2770,7 +3194,7 @@
         "h": 7,
         "w": 8,
         "x": 0,
-        "y": 53
+        "y": 69
       },
       "id": 14,
       "options": {
@@ -2875,7 +3299,7 @@
         "h": 7,
         "w": 8,
         "x": 8,
-        "y": 53
+        "y": 69
       },
       "id": 4,
       "options": {
@@ -2978,7 +3402,7 @@
         "h": 7,
         "w": 8,
         "x": 16,
-        "y": 53
+        "y": 69
       },
       "id": 7,
       "options": {
@@ -3083,7 +3507,7 @@
         "h": 7,
         "w": 8,
         "x": 0,
-        "y": 60
+        "y": 76
       },
       "id": 62,
       "options": {
@@ -3184,7 +3608,7 @@
         "h": 7,
         "w": 8,
         "x": 8,
-        "y": 60
+        "y": 76
       },
       "id": 64,
       "options": {
@@ -3332,7 +3756,7 @@
         "h": 7,
         "w": 8,
         "x": 16,
-        "y": 60
+        "y": 76
       },
       "id": 66,
       "options": {
@@ -3447,7 +3871,7 @@
         "h": 7,
         "w": 8,
         "x": 0,
-        "y": 67
+        "y": 83
       },
       "id": 68,
       "options": {
