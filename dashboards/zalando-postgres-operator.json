@@ -2675,7 +2675,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "pg_stat_activity_count{datname=~\"$datname\", pod=\"$instance\", state=\"active\"} !=0",
+          "expr": "pg_stat_activity_count{datname=~\"$datname\", pod=\"$instance\", state=\"active\"}",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 2,
