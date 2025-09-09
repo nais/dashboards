@@ -25,6 +25,93 @@
       "fieldConfig": {
         "defaults": {
           "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "index": 1,
+                  "text": "Yes"
+                },
+                "1": {
+                  "index": 0,
+                  "text": "No"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 2,
+        "w": 3,
+        "x": 0,
+        "y": 0
+      },
+      "id": 81,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.1.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "disableTextWrap": false,
+          "editorMode": "code",
+          "expr": "pg_replication_is_replica{namespace=\"$namespace\", pod=\"$instance\"}",
+          "fullMetaSearch": false,
+          "includeNullMetadata": true,
+          "instant": false,
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A",
+          "useBackend": false
+        }
+      ],
+      "title": "Primary",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
             "fixedColor": "transparent",
             "mode": "fixed"
           },
@@ -54,8 +141,8 @@
       },
       "gridPos": {
         "h": 2,
-        "w": 4,
-        "x": 0,
+        "w": 3,
+        "x": 3,
         "y": 0
       },
       "id": 36,
@@ -123,8 +210,8 @@
       },
       "gridPos": {
         "h": 2,
-        "w": 4,
-        "x": 4,
+        "w": 3,
+        "x": 6,
         "y": 0
       },
       "id": 69,
@@ -200,8 +287,8 @@
       },
       "gridPos": {
         "h": 2,
-        "w": 4,
-        "x": 8,
+        "w": 3,
+        "x": 9,
         "y": 0
       },
       "id": 11,
@@ -277,7 +364,7 @@
       },
       "gridPos": {
         "h": 2,
-        "w": 4,
+        "w": 3,
         "x": 12,
         "y": 0
       },
@@ -354,8 +441,8 @@
       },
       "gridPos": {
         "h": 2,
-        "w": 4,
-        "x": 16,
+        "w": 3,
+        "x": 15,
         "y": 0
       },
       "id": 12,
@@ -431,8 +518,8 @@
       },
       "gridPos": {
         "h": 2,
-        "w": 4,
-        "x": 20,
+        "w": 3,
+        "x": 18,
         "y": 0
       },
       "id": 38,
