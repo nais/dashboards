@@ -1634,6 +1634,19 @@
           "legendFormat": "request",
           "range": true,
           "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "kubelet_volume_stats_capacity_bytes{persistentvolumeclaim=\"pgdata-$instance\"}",
+          "hide": false,
+          "instant": false,
+          "legendFormat": "capacity",
+          "range": true,
+          "refId": "C"
         }
       ],
       "title": "Disk Usage",
