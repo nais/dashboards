@@ -1530,7 +1530,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
-      "description": "Percentage of request",
+      "description": "",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1583,9 +1583,9 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "bytes"
         },
-        "unit": "bytes",
         "overrides": []
       },
       "gridPos": {
