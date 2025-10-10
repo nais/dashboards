@@ -14,7 +14,7 @@
       "title": "Source",
       "tooltip": "Source",
       "type": "link",
-      "url": "https://github.com/nais/dashboards/blob/main/dashboards/zalando-postgres-operator.json"
+      "url": "https://github.com/nais/dashboards/blob/main/dashboards/postgres.json"
     }
   ],
   "panels": [
@@ -4290,6 +4290,6 @@
     ]
   },
   "timezone": "default",
-  "title": "Zalando postgres-operator overview",
-  "uid": "zalando-postgres"
+  "title": "Postgres overview",
+  "uid": "postgres"
 }
