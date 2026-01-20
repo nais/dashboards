@@ -2843,7 +2843,7 @@
           "format": "time_series",
           "interval": "",
           "intervalFactor": 2,
-          "legendFormat": "{{datname}}, s: {{state}}",
+          "legendFormat": "{{wait_event}}:{{wait_event_type}} - {{application_name}}",
           "range": true,
           "refId": "A",
           "step": 2
