@@ -3370,7 +3370,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "pg_locks_count{datname=~\"$datname\", pod=\"$instance\", mode=~\"$mode\"}",
+          "expr": "cnpg_pg_locks_count{datname=~\"$datname\", pod=\"$instance\", mode=~\"$mode\"}",
           "format": "time_series",
           "intervalFactor": 2,
           "legendFormat": "{{datname}},{{mode}}",
@@ -3378,7 +3378,7 @@
           "step": 2
         }
       ],
-      "title": "Lock tables (NOT WORKING)",
+      "title": "Lock tables",
       "type": "timeseries"
     },
     {
