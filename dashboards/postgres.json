@@ -1622,7 +1622,7 @@
           "editorMode": "code",
           "expr": "kubelet_volume_stats_used_bytes{persistentvolumeclaim=\"$instance\"}",
           "instant": false,
-          "legendFormat": "usage",
+          "legendFormat": "total",
           "range": true,
           "refId": "A"
         },
@@ -1649,6 +1649,18 @@
           "legendFormat": "capacity",
           "range": true,
           "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "cnpg_pg_database_size_bytes{pod=\"$instance\"}",
+          "instant": false,
+          "legendFormat": "{{datname}}",
+          "range": true,
+          "refId": "D"
         }
       ],
       "title": "Disk Usage",
