@@ -2100,7 +2100,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "topk(5, rate(cnpg_pg_stat_statements_block_read_seconds_total{namespace=\"$namespace\", pod=\"$instance\"}[15m])) * on(queryid, pod) group_left(query) cnpg_pg_stat_statements_query_id",
+          "expr": "topk(5, rate(cnpg_pg_stat_statements_block_read_seconds_total{namespace=\"$namespace\", pod=\"$instance\"}[15m])) * on(queryid, pod) group_left(query) cnpg_pg_stat_statements_queries_value",
           "format": "time_series",
           "instant": false,
           "legendFormat": "{{query}}",
@@ -2154,12 +2154,12 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "query"
+              "options": "Value"
             },
             "properties": [
               {
                 "id": "custom.width",
-                "value": 711
+                "value": 100
               }
             ]
           }
@@ -2187,7 +2187,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "topk(5, rate(cnpg_pg_stat_statements_block_read_seconds_total{namespace=\"$namespace\", pod=\"$instance\"}[15m])) * on(queryid, pod) group_left(query) cnpg_pg_stat_statements_query_id",
+          "expr": "topk(5, rate(cnpg_pg_stat_statements_block_read_seconds_total{namespace=\"$namespace\", pod=\"$instance\"}[15m])) * on(queryid, pod) group_left(query) cnpg_pg_stat_statements_queries_value",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -2204,6 +2204,7 @@
               "Time": true,
               "app": true,
               "cluster_name": true,
+              "k8s_cluster_name": true,
               "container": true,
               "datname": true,
               "endpoint": true,
@@ -2316,7 +2317,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "topk(10, rate( cnpg_pg_stat_statements_seconds_total{namespace=\"$namespace\", pod=\"$instance\"} [5m])) * on(queryid, pod) group_left(query) cnpg_pg_stat_statements_query_id",
+          "expr": "topk(10, rate( cnpg_pg_stat_statements_seconds_total{namespace=\"$namespace\", pod=\"$instance\"} [5m])) * on(queryid, pod) group_left(query) cnpg_pg_stat_statements_queries_value",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -2371,12 +2372,12 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "query"
+              "options": "Value"
             },
             "properties": [
               {
                 "id": "custom.width",
-                "value": 711
+                "value": 100
               }
             ]
           }
@@ -2404,7 +2405,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "topk(10, rate( cnpg_pg_stat_statements_seconds_total{namespace=\"$namespace\", pod=\"$instance\"} [5m])) * on(queryid, pod) group_left(query) cnpg_pg_stat_statements_query_id",
+          "expr": "topk(10, rate( cnpg_pg_stat_statements_seconds_total{namespace=\"$namespace\", pod=\"$instance\"} [5m])) * on(queryid, pod) group_left(query) cnpg_pg_stat_statements_queries_value",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -2421,6 +2422,7 @@
               "Time": true,
               "app": true,
               "cluster_name": true,
+              "k8s_cluster_name": true,
               "container": true,
               "datname": true,
               "endpoint": true,
@@ -2532,7 +2534,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "topk(10, rate(cnpg_pg_stat_statements_block_write_seconds_total{namespace=\"$namespace\", pod=\"$instance\"}[5m])) * on(queryid, pod) group_left(query) cnpg_pg_stat_statements_query_id",
+          "expr": "topk(10, rate(cnpg_pg_stat_statements_block_write_seconds_total{namespace=\"$namespace\", pod=\"$instance\"}[5m])) * on(queryid, pod) group_left(query) cnpg_pg_stat_statements_queries_value",
           "instant": false,
           "legendFormat": "{{query}}",
           "range": true,
@@ -2585,12 +2587,12 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "query"
+              "options": "Value"
             },
             "properties": [
               {
                 "id": "custom.width",
-                "value": 711
+                "value": 100
               }
             ]
           }
@@ -2618,7 +2620,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "topk(10, rate(cnpg_pg_stat_statements_block_write_seconds_total{namespace=\"$namespace\", pod=\"$instance\"}[5m])) * on(queryid, pod) group_left(query) cnpg_pg_stat_statements_query_id",
+          "expr": "topk(10, rate(cnpg_pg_stat_statements_block_write_seconds_total{namespace=\"$namespace\", pod=\"$instance\"}[5m])) * on(queryid, pod) group_left(query) cnpg_pg_stat_statements_queries_value",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -2635,6 +2637,7 @@
               "Time": true,
               "app": true,
               "cluster_name": true,
+              "k8s_cluster_name": true,
               "container": true,
               "datname": true,
               "endpoint": true,
@@ -2745,7 +2748,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "topk(10, rate(cnpg_pg_stat_statements_calls_total{namespace=\"$namespace\", pod=\"$instance\"}[15m])) * on(queryid, pod) group_left(query) cnpg_pg_stat_statements_query_id",
+          "expr": "topk(10, rate(cnpg_pg_stat_statements_calls_total{namespace=\"$namespace\", pod=\"$instance\"}[15m])) * on(queryid, pod) group_left(query) cnpg_pg_stat_statements_queries_value",
           "instant": false,
           "legendFormat": "{{query}}",
           "range": true,
@@ -2785,12 +2788,12 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "query"
+              "options": "Value"
             },
             "properties": [
               {
                 "id": "custom.width",
-                "value": 711
+                "value": 100
               }
             ]
           }
@@ -2818,7 +2821,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "topk(10, rate(cnpg_pg_stat_statements_calls_total{namespace=\"$namespace\", pod=\"$instance\"}[15m])) * on(queryid, pod) group_left(query) cnpg_pg_stat_statements_query_id",
+          "expr": "topk(10, rate(cnpg_pg_stat_statements_calls_total{namespace=\"$namespace\", pod=\"$instance\"}[15m])) * on(queryid, pod) group_left(query) cnpg_pg_stat_statements_queries_value",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -2835,6 +2838,7 @@
               "Time": true,
               "app": true,
               "cluster_name": true,
+              "k8s_cluster_name": true,
               "container": true,
               "datname": true,
               "endpoint": true,
