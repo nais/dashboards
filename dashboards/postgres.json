@@ -1,4 +1,20 @@
 {
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
   "description": "This dashboard works with postgres_exporter for prometheus",
   "editable": false,
   "fiscalYearStartMonth": 0,
@@ -32,12 +48,12 @@
             {
               "options": {
                 "0": {
-                  "index": 1,
-                  "text": "Yes"
-                },
-                "1": {
                   "index": 0,
                   "text": "No"
+                },
+                "1": {
+                  "index": 1,
+                  "text": "Yes"
                 }
               },
               "type": "value"
@@ -47,11 +63,11 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "yellow",
                 "value": 0
               },
               {
-                "color": "yellow",
+                "color": "green",
                 "value": 1
               }
             ]
@@ -83,7 +99,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.4.2",
       "targets": [
         {
           "datasource": {
@@ -92,7 +108,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "pg_replication_is_replica{namespace=\"$namespace\", pod=\"$instance\"}",
+          "expr": "cnpg_pg_replication_streaming_replicas{namespace=\"$namespace\", pod=\"$instance\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "instant": false,
@@ -165,18 +181,18 @@
         "textMode": "name",
         "wideLayout": true
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.4.2",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "pg_static{pod=\"$instance\"}",
+          "expr": "cnpg_collector_postgres_version{pod=\"$instance\"}",
           "format": "time_series",
           "instant": true,
           "intervalFactor": 1,
-          "legendFormat": "{{short_version}}",
+          "legendFormat": "{{full}}",
           "refId": "A"
         }
       ],
@@ -233,7 +249,7 @@
         "textMode": "value",
         "wideLayout": true
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.4.2",
       "targets": [
         {
           "datasource": {
@@ -241,7 +257,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "(time() - process_start_time_seconds{pod=\"$instance\"}) / 3600",
+          "expr": "(time() - cnpg_pg_postmaster_start_time{pod=\"$instance\"}) / 3600",
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
@@ -311,14 +327,14 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.4.2",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "SUM(pg_stat_database_tup_inserted{datname=~\"$datname\", pod=\"$instance\"})",
+          "expr": "SUM(cnpg_pg_stat_database_tup_inserted{datname=~\"$datname\", pod=\"$instance\"})",
           "format": "time_series",
           "intervalFactor": 2,
           "refId": "A",
@@ -388,14 +404,14 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.4.2",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "SUM(pg_stat_database_tup_fetched{datname=~\"$datname\", pod=\"$instance\"})",
+          "expr": "SUM(cnpg_pg_stat_database_tup_fetched{datname=~\"$datname\", pod=\"$instance\"})",
           "format": "time_series",
           "intervalFactor": 2,
           "refId": "A",
@@ -465,14 +481,14 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.4.2",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "SUM(pg_stat_database_tup_updated{datname=~\"$datname\", pod=\"$instance\"})",
+          "expr": "SUM(cnpg_pg_stat_database_tup_updated{datname=~\"$datname\", pod=\"$instance\"})",
           "format": "time_series",
           "intervalFactor": 2,
           "refId": "A",
@@ -542,14 +558,14 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.4.2",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "pg_settings_max_connections{pod=\"$instance\"}",
+          "expr": "cnpg_pg_settings_setting{name=\"max_connections\",pod=\"$instance\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "refId": "A"
@@ -631,14 +647,14 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.4.2",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "pg_settings_shared_buffers_bytes{pod=\"$instance\"}",
+          "expr": "cnpg_pg_settings_setting{name=\"shared_buffers\",pod=\"$instance\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "refId": "A"
@@ -707,14 +723,14 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.4.2",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "pg_settings_effective_cache_size_bytes{pod=\"$instance\"}",
+          "expr": "cnpg_pg_settings_setting{name=\"effective_cache_size\",pod=\"$instance\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "refId": "A"
@@ -783,14 +799,14 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.4.2",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "pg_settings_maintenance_work_mem_bytes{pod=\"$instance\"}",
+          "expr": "cnpg_pg_settings_setting{name=\"maintenance_work_mem\",pod=\"$instance\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "refId": "A"
@@ -859,14 +875,14 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.4.2",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "pg_settings_work_mem_bytes{pod=\"$instance\"}",
+          "expr": "cnpg_pg_settings_setting{name=\"work_mem\",pod=\"$instance\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "",
@@ -937,14 +953,14 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.4.2",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "pg_settings_max_wal_size_bytes{pod=\"$instance\"}",
+          "expr": "cnpg_pg_settings_setting{name=\"max_wal_size\",pod=\"$instance\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "refId": "A"
@@ -1013,14 +1029,14 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.4.2",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "pg_settings_random_page_cost{pod=\"$instance\"}",
+          "expr": "cnpg_pg_settings_setting{name=\"random_page_cost\",pod=\"$instance\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "refId": "A"
@@ -1089,14 +1105,14 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.4.2",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "pg_settings_seq_page_cost{pod=\"$instance\"}",
+          "expr": "cnpg_pg_settings_setting{name=\"seq_page_cost\",pod=\"$instance\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "refId": "A"
@@ -1165,14 +1181,14 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.4.2",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "pg_settings_max_worker_processes{pod=\"$instance\"}",
+          "expr": "cnpg_pg_settings_setting{name=\"max_worker_processes\",pod=\"$instance\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "refId": "A"
@@ -1241,14 +1257,14 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.4.2",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "pg_settings_max_parallel_workers{pod=\"$instance\"}",
+          "expr": "cnpg_pg_settings_setting{name=\"max_parallel_workers\",pod=\"$instance\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "refId": "A"
@@ -1267,7 +1283,7 @@
       },
       "id": 34,
       "panels": [],
-      "title": "General Counters, CPU, Memory and File Descriptor Stats",
+      "title": "General Counters, CPU, and Memory Stats",
       "type": "row"
     },
     {
@@ -1306,6 +1322,7 @@
               "type": "linear"
             },
             "showPoints": "auto",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -1334,7 +1351,7 @@
       },
       "gridPos": {
         "h": 7,
-        "w": 12,
+        "w": 8,
         "x": 0,
         "y": 6
       },
@@ -1352,7 +1369,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.4.2",
       "targets": [
         {
           "datasource": {
@@ -1373,7 +1390,6 @@
           },
           "editorMode": "code",
           "expr": "sum(kube_pod_container_resource_requests{container=\"postgres\", pod=\"$instance\", resource=\"cpu\"}) by (pod)",
-          "hide": false,
           "instant": false,
           "legendFormat": "request",
           "range": true,
@@ -1418,6 +1434,7 @@
               "type": "linear"
             },
             "showPoints": "never",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -1447,8 +1464,8 @@
       },
       "gridPos": {
         "h": 7,
-        "w": 12,
-        "x": 12,
+        "w": 8,
+        "x": 8,
         "y": 6
       },
       "id": 24,
@@ -1471,14 +1488,14 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.4.2",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "avg(rate(process_resident_memory_bytes{pod=\"$instance\"}[5m]))",
+          "expr": "avg(container_memory_rss{pod=\"$instance\"})",
           "format": "time_series",
           "intervalFactor": 2,
           "legendFormat": "Resident Mem",
@@ -1489,20 +1506,8 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "avg(rate(process_virtual_memory_bytes{pod=\"$instance\"}[5m]))",
-          "format": "time_series",
-          "intervalFactor": 2,
-          "legendFormat": "Virtual Mem",
-          "refId": "B"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
           "editorMode": "code",
           "expr": "kube_pod_container_resource_limits{resource=\"memory\", pod=\"$instance\", container=\"postgres\"}",
-          "hide": false,
           "instant": false,
           "legendFormat": "Postgres Limit Mem",
           "range": true,
@@ -1514,8 +1519,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "avg(rate(container_memory_usage_bytes{container=\"postgres\", pod=\"$instance\"}[5m]))",
-          "hide": false,
+          "expr": "avg(container_memory_usage_bytes{container=\"postgres\", pod=\"$instance\"})",
           "instant": false,
           "legendFormat": "Postgres Usage Mem",
           "range": true,
@@ -1530,7 +1534,6 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
-      "description": "",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1561,6 +1564,7 @@
               "type": "linear"
             },
             "showPoints": "auto",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -1590,9 +1594,9 @@
       },
       "gridPos": {
         "h": 7,
-        "w": 12,
-        "x": 0,
-        "y": 13
+        "w": 8,
+        "x": 16,
+        "y": 6
       },
       "id": 86,
       "options": {
@@ -1608,7 +1612,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.4.2",
       "targets": [
         {
           "datasource": {
@@ -1616,9 +1620,9 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "kubelet_volume_stats_used_bytes{persistentvolumeclaim=\"pgdata-$instance\"}",
+          "expr": "kubelet_volume_stats_used_bytes{persistentvolumeclaim=\"$instance\"}",
           "instant": false,
-          "legendFormat": "usage",
+          "legendFormat": "total",
           "range": true,
           "refId": "A"
         },
@@ -1628,8 +1632,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "kube_persistentvolumeclaim_resource_requests_storage_bytes{persistentvolumeclaim=\"pgdata-$instance\"}",
-          "hide": false,
+          "expr": "kube_persistentvolumeclaim_resource_requests_storage_bytes{persistentvolumeclaim=\"$instance\"}",
           "instant": false,
           "legendFormat": "request",
           "range": true,
@@ -1641,60 +1644,127 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "kubelet_volume_stats_capacity_bytes{persistentvolumeclaim=\"pgdata-$instance\"}",
-          "hide": false,
+          "expr": "kubelet_volume_stats_capacity_bytes{persistentvolumeclaim=\"$instance\"}",
           "instant": false,
           "legendFormat": "capacity",
           "range": true,
           "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "cnpg_pg_database_size_bytes{pod=\"$instance\"}",
+          "instant": false,
+          "legendFormat": "{{datname}}",
+          "range": true,
+          "refId": "D"
         }
       ],
       "title": "Disk Usage",
       "type": "timeseries"
     },
     {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 13
+      },
+      "id": 93,
+      "panels": [],
+      "title": "WAL archiving",
+      "type": "row"
+    },
+    {
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
       },
-      "description": "Number of open file descriptors",
+      "description": "Number of WAL files that have been successfully archived",
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
           },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": 0
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "green",
+                "value": 3
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 0,
+        "y": 14
+      },
+      "id": 94,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "cnpg_pg_stat_archiver_archived_count{pod=\"${instance}\"}",
+          "instant": false,
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Archived",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "Time since the last successful archival operation",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
           },
           "mappings": [],
           "thresholds": {
@@ -1705,57 +1775,226 @@
                 "value": 0
               },
               {
+                "color": "yellow",
+                "value": 600
+              },
+              {
                 "color": "red",
-                "value": 80
+                "value": 1800
               }
             ]
           },
-          "unit": "short"
+          "unit": "s"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 7,
-        "w": 12,
-        "x": 12,
-        "y": 13
+        "h": 5,
+        "w": 6,
+        "x": 6,
+        "y": 14
       },
-      "id": 26,
+      "id": 96,
       "options": {
-        "dataLinks": [],
-        "legend": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
           "calcs": [
-            "mean",
-            "lastNotNull",
-            "max",
-            "min"
+            "lastNotNull"
           ],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
+          "fields": "",
+          "values": false
         },
-        "tooltip": {
-          "hideZeros": false,
-          "mode": "multi",
-          "sort": "none"
-        }
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.4.2",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "process_open_fds{pod=\"$instance\"}",
-          "format": "time_series",
-          "intervalFactor": 2,
-          "legendFormat": "Open FD",
+          "editorMode": "code",
+          "expr": "cnpg_pg_stat_archiver_seconds_since_last_archival{pod=\"${instance}\"}",
+          "instant": false,
+          "legendFormat": "__auto",
+          "range": true,
           "refId": "A"
         }
       ],
-      "title": "Open File Descriptors",
-      "type": "timeseries"
+      "title": "Time since last archive",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "Number of failed attempts for archiving WAL files",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 3
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 12,
+        "y": 14
+      },
+      "id": 95,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "cnpg_pg_stat_archiver_failed_count{pod=\"${instance}\"}",
+          "instant": false,
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Failed",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "Time since the last failed archival operation",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "-1": {
+                  "color": "green",
+                  "index": 0,
+                  "text": "No failures"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 0
+              },
+              {
+                "color": "yellow",
+                "value": 600
+              },
+              {
+                "color": "green",
+                "value": 1800
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 18,
+        "y": 14
+      },
+      "id": 97,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "cnpg_pg_stat_archiver_seconds_since_last_failure{pod=\"${instance}\"}",
+          "instant": false,
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Time since last failure",
+      "type": "stat"
     },
     {
       "collapsed": false,
@@ -1763,7 +2002,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 20
+        "y": 19
       },
       "id": 73,
       "panels": [],
@@ -1804,6 +2043,7 @@
               "type": "linear"
             },
             "showPoints": "auto",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -1835,7 +2075,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 21
+        "y": 20
       },
       "id": 72,
       "maxDataPoints": 50,
@@ -1852,7 +2092,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.4.2",
       "targets": [
         {
           "datasource": {
@@ -1860,7 +2100,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "topk(5, rate(pg_stat_statements_block_read_seconds_total{namespace=\"$namespace\", pod=\"$instance\"}[15m])) * on(queryid, pod) group_left(query) pg_stat_statements_query_id",
+          "expr": "topk(5, rate(cnpg_pg_stat_statements_block_read_seconds_total{namespace=\"$namespace\", pod=\"$instance\"}[15m])) * on(queryid, pod) group_left(query) cnpg_pg_stat_statements_queries_value",
           "format": "time_series",
           "instant": false,
           "legendFormat": "{{query}}",
@@ -1884,12 +2124,15 @@
           "custom": {
             "align": "auto",
             "cellOptions": {
-              "type": "auto",
-              "wrapText": true
+              "type": "auto"
             },
             "filterable": false,
+            "footer": {
+              "reducers": []
+            },
             "inspect": false,
-            "minWidth": 50
+            "minWidth": 50,
+            "wrapText": true
           },
           "mappings": [],
           "thresholds": {
@@ -1911,12 +2154,12 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "query"
+              "options": "Value"
             },
             "properties": [
               {
                 "id": "custom.width",
-                "value": 711
+                "value": 100
               }
             ]
           }
@@ -1926,24 +2169,16 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 21
+        "y": 20
       },
       "id": 82,
       "maxDataPoints": 50,
       "options": {
         "cellHeight": "sm",
-        "footer": {
-          "countRows": false,
-          "fields": "",
-          "reducer": [
-            "sum"
-          ],
-          "show": false
-        },
         "showHeader": false,
         "sortBy": []
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.4.2",
       "targets": [
         {
           "datasource": {
@@ -1952,7 +2187,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "topk(5, rate(pg_stat_statements_block_read_seconds_total{namespace=\"$namespace\", pod=\"$instance\"}[15m])) * on(queryid, pod) group_left(query) pg_stat_statements_query_id",
+          "expr": "topk(5, rate(cnpg_pg_stat_statements_block_read_seconds_total{namespace=\"$namespace\", pod=\"$instance\"}[15m])) * on(queryid, pod) group_left(query) cnpg_pg_stat_statements_queries_value",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -1969,6 +2204,7 @@
               "Time": true,
               "app": true,
               "cluster_name": true,
+              "k8s_cluster_name": true,
               "container": true,
               "datname": true,
               "endpoint": true,
@@ -2024,6 +2260,7 @@
               "type": "linear"
             },
             "showPoints": "auto",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -2055,7 +2292,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 29
+        "y": 28
       },
       "id": 71,
       "options": {
@@ -2071,7 +2308,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.4.2",
       "targets": [
         {
           "datasource": {
@@ -2080,7 +2317,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "topk(10, rate( pg_stat_statements_seconds_total{namespace=\"$namespace\", pod=\"$instance\"} [5m])) * on(queryid, pod) group_left(query) pg_stat_statements_query_id",
+          "expr": "topk(10, rate( cnpg_pg_stat_statements_seconds_total{namespace=\"$namespace\", pod=\"$instance\"} [5m])) * on(queryid, pod) group_left(query) cnpg_pg_stat_statements_queries_value",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -2105,12 +2342,15 @@
           "custom": {
             "align": "auto",
             "cellOptions": {
-              "type": "auto",
-              "wrapText": true
+              "type": "auto"
             },
             "filterable": false,
+            "footer": {
+              "reducers": []
+            },
             "inspect": false,
-            "minWidth": 50
+            "minWidth": 50,
+            "wrapText": true
           },
           "mappings": [],
           "thresholds": {
@@ -2132,12 +2372,12 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "query"
+              "options": "Value"
             },
             "properties": [
               {
                 "id": "custom.width",
-                "value": 711
+                "value": 100
               }
             ]
           }
@@ -2147,24 +2387,16 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 29
+        "y": 28
       },
       "id": 83,
       "maxDataPoints": 50,
       "options": {
         "cellHeight": "sm",
-        "footer": {
-          "countRows": false,
-          "fields": "",
-          "reducer": [
-            "sum"
-          ],
-          "show": false
-        },
         "showHeader": false,
         "sortBy": []
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.4.2",
       "targets": [
         {
           "datasource": {
@@ -2173,7 +2405,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "topk(10, rate( pg_stat_statements_seconds_total{namespace=\"$namespace\", pod=\"$instance\"} [5m])) * on(queryid, pod) group_left(query) pg_stat_statements_query_id",
+          "expr": "topk(10, rate( cnpg_pg_stat_statements_seconds_total{namespace=\"$namespace\", pod=\"$instance\"} [5m])) * on(queryid, pod) group_left(query) cnpg_pg_stat_statements_queries_value",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -2190,6 +2422,7 @@
               "Time": true,
               "app": true,
               "cluster_name": true,
+              "k8s_cluster_name": true,
               "container": true,
               "datname": true,
               "endpoint": true,
@@ -2245,6 +2478,7 @@
               "type": "linear"
             },
             "showPoints": "auto",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -2276,7 +2510,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 37
+        "y": 36
       },
       "id": 74,
       "options": {
@@ -2292,7 +2526,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.4.2",
       "targets": [
         {
           "datasource": {
@@ -2300,7 +2534,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "topk(10, rate(pg_stat_statements_block_write_seconds_total{namespace=\"$namespace\", pod=\"$instance\"}[5m])) * on(queryid, pod) group_left(query) pg_stat_statements_query_id",
+          "expr": "topk(10, rate(cnpg_pg_stat_statements_block_write_seconds_total{namespace=\"$namespace\", pod=\"$instance\"}[5m])) * on(queryid, pod) group_left(query) cnpg_pg_stat_statements_queries_value",
           "instant": false,
           "legendFormat": "{{query}}",
           "range": true,
@@ -2323,12 +2557,15 @@
           "custom": {
             "align": "auto",
             "cellOptions": {
-              "type": "auto",
-              "wrapText": true
+              "type": "auto"
             },
             "filterable": false,
+            "footer": {
+              "reducers": []
+            },
             "inspect": false,
-            "minWidth": 50
+            "minWidth": 50,
+            "wrapText": true
           },
           "mappings": [],
           "thresholds": {
@@ -2350,12 +2587,12 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "query"
+              "options": "Value"
             },
             "properties": [
               {
                 "id": "custom.width",
-                "value": 711
+                "value": 100
               }
             ]
           }
@@ -2365,24 +2602,16 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 37
+        "y": 36
       },
       "id": 84,
       "maxDataPoints": 50,
       "options": {
         "cellHeight": "sm",
-        "footer": {
-          "countRows": false,
-          "fields": "",
-          "reducer": [
-            "sum"
-          ],
-          "show": false
-        },
         "showHeader": false,
         "sortBy": []
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.4.2",
       "targets": [
         {
           "datasource": {
@@ -2391,7 +2620,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "topk(10, rate(pg_stat_statements_block_write_seconds_total{namespace=\"$namespace\", pod=\"$instance\"}[5m])) * on(queryid, pod) group_left(query) pg_stat_statements_query_id",
+          "expr": "topk(10, rate(cnpg_pg_stat_statements_block_write_seconds_total{namespace=\"$namespace\", pod=\"$instance\"}[5m])) * on(queryid, pod) group_left(query) cnpg_pg_stat_statements_queries_value",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -2408,6 +2637,7 @@
               "Time": true,
               "app": true,
               "cluster_name": true,
+              "k8s_cluster_name": true,
               "container": true,
               "datname": true,
               "endpoint": true,
@@ -2463,6 +2693,7 @@
               "type": "linear"
             },
             "showPoints": "auto",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -2493,7 +2724,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 45
+        "y": 44
       },
       "id": 75,
       "options": {
@@ -2509,7 +2740,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.4.2",
       "targets": [
         {
           "datasource": {
@@ -2517,7 +2748,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "topk(10, rate(pg_stat_statements_calls_total{namespace=\"$namespace\", pod=\"$instance\"}[15m])) * on(queryid, pod) group_left(query) pg_stat_statements_query_id",
+          "expr": "topk(10, rate(cnpg_pg_stat_statements_calls_total{namespace=\"$namespace\", pod=\"$instance\"}[15m])) * on(queryid, pod) group_left(query) cnpg_pg_stat_statements_queries_value",
           "instant": false,
           "legendFormat": "{{query}}",
           "range": true,
@@ -2540,12 +2771,15 @@
           "custom": {
             "align": "auto",
             "cellOptions": {
-              "type": "auto",
-              "wrapText": true
+              "type": "auto"
             },
             "filterable": false,
+            "footer": {
+              "reducers": []
+            },
             "inspect": false,
-            "minWidth": 50
+            "minWidth": 50,
+            "wrapText": true
           },
           "mappings": [],
           "thresholds": {}
@@ -2554,12 +2788,12 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "query"
+              "options": "Value"
             },
             "properties": [
               {
                 "id": "custom.width",
-                "value": 711
+                "value": 100
               }
             ]
           }
@@ -2569,24 +2803,16 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 45
+        "y": 44
       },
       "id": 85,
       "maxDataPoints": 50,
       "options": {
         "cellHeight": "sm",
-        "footer": {
-          "countRows": false,
-          "fields": "",
-          "reducer": [
-            "sum"
-          ],
-          "show": false
-        },
         "showHeader": false,
         "sortBy": []
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.4.2",
       "targets": [
         {
           "datasource": {
@@ -2595,7 +2821,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "topk(10, rate(pg_stat_statements_calls_total{namespace=\"$namespace\", pod=\"$instance\"}[15m])) * on(queryid, pod) group_left(query) pg_stat_statements_query_id",
+          "expr": "topk(10, rate(cnpg_pg_stat_statements_calls_total{namespace=\"$namespace\", pod=\"$instance\"}[15m])) * on(queryid, pod) group_left(query) cnpg_pg_stat_statements_queries_value",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -2612,6 +2838,7 @@
               "Time": true,
               "app": true,
               "cluster_name": true,
+              "k8s_cluster_name": true,
               "container": true,
               "datname": true,
               "endpoint": true,
@@ -2667,6 +2894,7 @@
               "type": "linear"
             },
             "showPoints": "auto",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -2697,7 +2925,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 53
+        "y": 52
       },
       "id": 76,
       "options": {
@@ -2713,7 +2941,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.4.2",
       "targets": [
         {
           "datasource": {
@@ -2721,7 +2949,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "topk(10, pg_stat_activity_max_tx_duration{namespace=\"$namespace\", pod=\"$instance\"})",
+          "expr": "topk(10, cnpg_pg_stat_activity_max_tx_duration{namespace=\"$namespace\", pod=\"$instance\"})",
           "instant": false,
           "legendFormat": "{{state}}",
           "range": true,
@@ -2737,7 +2965,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 61
+        "y": 60
       },
       "id": 30,
       "panels": [],
@@ -2778,6 +3006,7 @@
               "type": "linear"
             },
             "showPoints": "always",
+            "showValues": false,
             "spanNulls": true,
             "stacking": {
               "group": "A",
@@ -2810,7 +3039,7 @@
         "h": 7,
         "w": 8,
         "x": 0,
-        "y": 62
+        "y": 61
       },
       "id": 1,
       "options": {
@@ -2831,7 +3060,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.4.2",
       "targets": [
         {
           "datasource": {
@@ -2839,7 +3068,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "pg_stat_activity_count{datname=~\"$datname\", pod=\"$instance\", state=\"active\"}",
+          "expr": "cnpg_pg_stat_activity_count{datname=~\"$datname\", pod=\"$instance\", state=\"active\"}",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 2,
@@ -2886,6 +3115,7 @@
               "type": "linear"
             },
             "showPoints": "never",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -2917,7 +3147,7 @@
         "h": 7,
         "w": 8,
         "x": 8,
-        "y": 62
+        "y": 61
       },
       "id": 60,
       "options": {
@@ -2938,14 +3168,14 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.4.2",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "irate(pg_stat_database_xact_commit{pod=\"$instance\", datname=~\"$datname\"}[5m])",
+          "expr": "irate(cnpg_pg_stat_database_xact_commit{pod=\"$instance\", datname=~\"$datname\"}[5m])",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{datname}} commits",
@@ -2956,7 +3186,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "irate(pg_stat_database_xact_rollback{pod=\"$instance\", datname=~\"$datname\"}[5m])",
+          "expr": "irate(cnpg_pg_stat_database_xact_rollback{pod=\"$instance\", datname=~\"$datname\"}[5m])",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{datname}} rollbacks",
@@ -3000,6 +3230,324 @@
               "type": "linear"
             },
             "showPoints": "never",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 0,
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 16,
+        "y": 61
+      },
+      "id": 3,
+      "options": {
+        "dataLinks": [],
+        "legend": {
+          "calcs": [
+            "mean",
+            "lastNotNull",
+            "sum"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "cnpg_pg_locks_count{datname=~\"$datname\", pod=\"$instance\", mode=~\"$mode\"}",
+          "format": "time_series",
+          "intervalFactor": 2,
+          "legendFormat": "{{datname}},{{mode}}",
+          "refId": "A",
+          "step": 2
+        }
+      ],
+      "title": "Lock tables",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 0,
+        "y": 68
+      },
+      "id": 5,
+      "options": {
+        "dataLinks": [],
+        "legend": {
+          "calcs": [
+            "mean",
+            "lastNotNull",
+            "sum"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "cnpg_pg_stat_database_tup_fetched{datname=~\"$datname\", pod=\"$instance\"}",
+          "format": "time_series",
+          "intervalFactor": 2,
+          "legendFormat": "{{datname}}",
+          "refId": "A",
+          "step": 2
+        }
+      ],
+      "title": "Fetch data (SELECT)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 8,
+        "y": 68
+      },
+      "id": 6,
+      "options": {
+        "dataLinks": [],
+        "legend": {
+          "calcs": [
+            "mean",
+            "lastNotNull",
+            "sum"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "cnpg_pg_stat_database_tup_inserted{datname=~\"$datname\", pod=\"$instance\"}",
+          "format": "time_series",
+          "intervalFactor": 2,
+          "legendFormat": "{{datname}}",
+          "refId": "A",
+          "step": 2
+        }
+      ],
+      "title": "Insert data",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -3031,7 +3579,7 @@
         "h": 7,
         "w": 8,
         "x": 16,
-        "y": 62
+        "y": 68
       },
       "id": 8,
       "options": {
@@ -3052,7 +3600,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.4.2",
       "targets": [
         {
           "datasource": {
@@ -3060,7 +3608,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "pg_stat_database_tup_updated{datname=~\"$datname\", pod=\"$instance\"}",
+          "expr": "cnpg_pg_stat_database_tup_updated{datname=~\"$datname\", pod=\"$instance\"}",
           "format": "time_series",
           "intervalFactor": 2,
           "legendFormat": "{{datname}}",
@@ -3106,6 +3654,7 @@
               "type": "linear"
             },
             "showPoints": "never",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -3137,321 +3686,7 @@
         "h": 7,
         "w": 8,
         "x": 0,
-        "y": 69
-      },
-      "id": 5,
-      "options": {
-        "dataLinks": [],
-        "legend": {
-          "calcs": [
-            "mean",
-            "lastNotNull",
-            "sum"
-          ],
-          "displayMode": "table",
-          "placement": "right",
-          "showLegend": true
-        },
-        "tooltip": {
-          "hideZeros": false,
-          "mode": "multi",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "12.1.1",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "pg_stat_database_tup_fetched{datname=~\"$datname\", pod=\"$instance\"}",
-          "format": "time_series",
-          "intervalFactor": 2,
-          "legendFormat": "{{datname}}",
-          "refId": "A",
-          "step": 2
-        }
-      ],
-      "title": "Fetch data (SELECT)",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 8,
-        "x": 8,
-        "y": 69
-      },
-      "id": 6,
-      "options": {
-        "dataLinks": [],
-        "legend": {
-          "calcs": [
-            "mean",
-            "lastNotNull",
-            "sum"
-          ],
-          "displayMode": "table",
-          "placement": "right",
-          "showLegend": true
-        },
-        "tooltip": {
-          "hideZeros": false,
-          "mode": "multi",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "12.1.1",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "pg_stat_database_tup_inserted{datname=~\"$datname\", pod=\"$instance\"}",
-          "format": "time_series",
-          "intervalFactor": 2,
-          "legendFormat": "{{datname}}",
-          "refId": "A",
-          "step": 2
-        }
-      ],
-      "title": "Insert data",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "decimals": 0,
-          "mappings": [],
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 8,
-        "x": 16,
-        "y": 69
-      },
-      "id": 3,
-      "options": {
-        "dataLinks": [],
-        "legend": {
-          "calcs": [
-            "mean",
-            "lastNotNull",
-            "sum"
-          ],
-          "displayMode": "table",
-          "placement": "right",
-          "showLegend": true
-        },
-        "tooltip": {
-          "hideZeros": false,
-          "mode": "multi",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "12.1.1",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "pg_locks_count{datname=~\"$datname\", pod=\"$instance\", mode=~\"$mode\"}",
-          "format": "time_series",
-          "intervalFactor": 2,
-          "legendFormat": "{{datname}},{{mode}}",
-          "refId": "A",
-          "step": 2
-        }
-      ],
-      "title": "Lock tables",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 8,
-        "x": 0,
-        "y": 76
+        "y": 75
       },
       "id": 14,
       "options": {
@@ -3472,14 +3707,14 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.4.2",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "pg_stat_database_tup_returned{datname=~\"$datname\", pod=\"$instance\"}",
+          "expr": "cnpg_pg_stat_database_tup_returned{datname=~\"$datname\", pod=\"$instance\"}",
           "format": "time_series",
           "intervalFactor": 2,
           "legendFormat": "{{datname}}",
@@ -3524,6 +3759,7 @@
               "type": "linear"
             },
             "showPoints": "never",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -3556,7 +3792,7 @@
         "h": 7,
         "w": 8,
         "x": 8,
-        "y": 76
+        "y": 75
       },
       "id": 4,
       "options": {
@@ -3576,14 +3812,14 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.4.2",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "pg_stat_activity_count{datname=~\"$datname\", pod=\"$instance\", state=~\"idle|idle in transaction|idle in transaction (aborted)\"}",
+          "expr": "cnpg_pg_stat_activity_count{datname=~\"$datname\", pod=\"$instance\", state=~\"idle|idle in transaction|idle in transaction (aborted)\"}",
           "format": "time_series",
           "intervalFactor": 2,
           "legendFormat": "{{datname}}, s: {{state}}",
@@ -3628,6 +3864,7 @@
               "type": "linear"
             },
             "showPoints": "never",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -3659,7 +3896,7 @@
         "h": 7,
         "w": 8,
         "x": 16,
-        "y": 76
+        "y": 75
       },
       "id": 7,
       "options": {
@@ -3680,14 +3917,14 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.4.2",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "pg_stat_database_tup_deleted{datname=~\"$datname\", pod=\"$instance\"}",
+          "expr": "cnpg_pg_stat_database_tup_deleted{datname=~\"$datname\", pod=\"$instance\"}",
           "format": "time_series",
           "intervalFactor": 2,
           "legendFormat": "{{datname}}",
@@ -3732,6 +3969,7 @@
               "type": "linear"
             },
             "showPoints": "never",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -3764,7 +4002,7 @@
         "h": 7,
         "w": 8,
         "x": 0,
-        "y": 83
+        "y": 82
       },
       "id": 62,
       "options": {
@@ -3783,14 +4021,14 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.4.2",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "pg_stat_database_blks_hit{pod=\"$instance\", datname=~\"$datname\"} / (pg_stat_database_blks_read{pod=\"$instance\", datname=~\"$datname\"} + pg_stat_database_blks_hit{pod=\"$instance\", datname=~\"$datname\"})",
+          "expr": "cnpg_pg_stat_database_blks_hit{pod=\"$instance\", datname=~\"$datname\"} / (cnpg_pg_stat_database_blks_read{pod=\"$instance\", datname=~\"$datname\"} + cnpg_pg_stat_database_blks_hit{pod=\"$instance\", datname=~\"$datname\"})",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{ datname }}",
@@ -3834,6 +4072,7 @@
               "type": "linear"
             },
             "showPoints": "never",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -3865,7 +4104,7 @@
         "h": 7,
         "w": 8,
         "x": 8,
-        "y": 83
+        "y": 82
       },
       "id": 64,
       "options": {
@@ -3886,14 +4125,14 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.4.2",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "irate(pg_stat_bgwriter_buffers_backend_total{pod=\"$instance\"}[5m])",
+          "expr": "irate(cnpg_pg_stat_bgwriter_buffers_backend{pod=\"$instance\"}[5m])",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "buffers_backend",
@@ -3904,7 +4143,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "irate(pg_stat_bgwriter_buffers_alloc_total{pod=\"$instance\"}[5m])",
+          "expr": "irate(cnpg_pg_stat_bgwriter_buffers_alloc{pod=\"$instance\"}[5m])",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "buffers_alloc",
@@ -3915,7 +4154,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "irate(pg_stat_bgwriter_buffers_backend_fsync_total{pod=\"$instance\"}[5m])",
+          "expr": "irate(cnpg_pg_stat_bgwriter_buffers_backend_fsync{pod=\"$instance\"}[5m])",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "backend_fsync",
@@ -3926,7 +4165,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "irate(pg_stat_bgwriter_buffers_checkpoint_total{pod=\"$instance\"}[5m])",
+          "expr": "irate(cnpg_pg_stat_bgwriter_buffers_checkpoint{pod=\"$instance\"}[5m])",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "buffers_checkpoint",
@@ -3937,7 +4176,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "irate(pg_stat_bgwriter_buffers_clean_total{pod=\"$instance\"}[5m])",
+          "expr": "irate(cnpg_pg_stat_bgwriter_buffers_clean{pod=\"$instance\"}[5m])",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "buffers_clean",
@@ -3981,6 +4220,7 @@
               "type": "linear"
             },
             "showPoints": "never",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -4013,7 +4253,7 @@
         "h": 7,
         "w": 8,
         "x": 16,
-        "y": 83
+        "y": 82
       },
       "id": 66,
       "options": {
@@ -4033,14 +4273,14 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.4.2",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "irate(pg_stat_database_conflicts{pod=\"$instance\", datname=~\"$datname\"}[5m])",
+          "expr": "irate(cnpg_pg_stat_database_conflicts{pod=\"$instance\", datname=~\"$datname\"}[5m])",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{datname}} conflicts",
@@ -4051,7 +4291,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "irate(pg_stat_database_deadlocks{pod=\"$instance\", datname=~\"$datname\"}[5m])",
+          "expr": "irate(cnpg_pg_stat_database_deadlocks{pod=\"$instance\", datname=~\"$datname\"}[5m])",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{datname}} deadlocks",
@@ -4096,6 +4336,7 @@
               "type": "linear"
             },
             "showPoints": "never",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -4128,7 +4369,7 @@
         "h": 7,
         "w": 8,
         "x": 0,
-        "y": 90
+        "y": 89
       },
       "id": 68,
       "options": {
@@ -4148,14 +4389,14 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.1.1",
+      "pluginVersion": "12.4.2",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "irate(pg_stat_database_temp_bytes{pod=\"$instance\", datname=~\"$datname\"}[5m])",
+          "expr": "irate(cnpg_pg_stat_database_temp_bytes{pod=\"$instance\", datname=~\"$datname\"}[5m])",
           "format": "time_series",
           "intervalFactor": 1,
           "legendFormat": "{{datname}}",
@@ -4164,11 +4405,321 @@
       ],
       "title": "Temp File (Bytes)",
       "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 96
+      },
+      "id": 89,
+      "panels": [],
+      "title": "Replication",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "Replicas actively streaming updates",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "axisSoftMax": 4,
+            "axisSoftMin": 0,
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 0,
+        "y": 97
+      },
+      "id": 87,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "cnpg_pg_replication_streaming_replicas{pod=\"${instance}\"}",
+          "instant": false,
+          "legendFormat": "replicas",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Streaming replicas",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "axisSoftMax": 4,
+            "axisSoftMin": 0,
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 8,
+        "y": 97
+      },
+      "id": 90,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "cnpg_pg_replication_slots_active{pod=\"${instance}\"}",
+          "instant": false,
+          "legendFormat": "replicas",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Active replica slots",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "Replication lag in seconds",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "axisSoftMin": 0,
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 16,
+        "y": 97
+      },
+      "id": 91,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "cnpg_pg_replication_lag{pod=\"${instance}\"}",
+          "instant": false,
+          "legendFormat": "lag",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Lag",
+      "type": "timeseries"
     }
   ],
   "preload": false,
   "refresh": "15m",
-  "schemaVersion": 41,
+  "schemaVersion": 42,
   "tags": [
     "postgres",
     "db",
@@ -4190,18 +4741,19 @@
           "type": "prometheus",
           "uid": "${datasource}"
         },
-        "definition": "label_values(pg_exporter_last_scrape_duration_seconds,namespace)",
+        "definition": "label_values(cnpg_collector_up,namespace)",
         "includeAll": false,
         "label": "Namespace",
         "name": "namespace",
         "options": [],
         "query": {
           "qryType": 1,
-          "query": "label_values(pg_exporter_last_scrape_duration_seconds,namespace)",
+          "query": "label_values(cnpg_collector_up,namespace)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 2,
         "regex": "",
+        "regexApplyTo": "value",
         "sort": 1,
         "type": "query"
       },
@@ -4211,18 +4763,19 @@
           "type": "prometheus",
           "uid": "${datasource}"
         },
-        "definition": "label_values(pg_exporter_last_scrape_duration_seconds{namespace=\"$namespace\"},pod)",
+        "definition": "label_values(cnpg_collector_up{namespace=\"$namespace\"},pod)",
         "includeAll": false,
         "label": "Instance",
         "name": "instance",
         "options": [],
         "query": {
           "qryType": 1,
-          "query": "label_values(pg_exporter_last_scrape_duration_seconds{namespace=\"$namespace\"},pod)",
+          "query": "label_values(cnpg_collector_up{namespace=\"$namespace\"},pod)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,
         "regex": "",
+        "regexApplyTo": "value",
         "sort": 1,
         "type": "query"
       },
@@ -4234,8 +4787,10 @@
             "$__all"
           ]
         },
-        "datasource": "${datasource}",
-        "definition": "label_values(pg_stat_database_tup_fetched{pod=\"$instance\"},datname)",
+        "datasource": {
+          "uid": "${datasource}"
+        },
+        "definition": "label_values(cnpg_pg_stat_database_tup_fetched{pod=\"$instance\"},datname)",
         "includeAll": true,
         "label": "Database",
         "multi": true,
@@ -4243,11 +4798,12 @@
         "options": [],
         "query": {
           "qryType": 1,
-          "query": "label_values(pg_stat_database_tup_fetched{pod=\"$instance\"},datname)",
+          "query": "label_values(cnpg_pg_stat_database_tup_fetched{pod=\"$instance\"},datname)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,
         "regex": "",
+        "regexApplyTo": "value",
         "sort": 1,
         "type": "query"
       },
@@ -4259,7 +4815,9 @@
             "$__all"
           ]
         },
-        "datasource": "${datasource}",
+        "datasource": {
+          "uid": "${datasource}"
+        },
         "definition": "",
         "includeAll": true,
         "label": "Lock table",
@@ -4269,6 +4827,7 @@
         "query": "label_values({mode=~\"accessexclusivelock|accesssharelock|exclusivelock|rowexclusivelock|rowsharelock|sharelock|sharerowexclusivelock|shareupdateexclusivelock\"}, mode)",
         "refresh": 1,
         "regex": "",
+        "regexApplyTo": "value",
         "type": "query"
       }
     ]
@@ -4290,6 +4849,8 @@
     ]
   },
   "timezone": "default",
-  "title": "Postgres overview",
-  "uid": "postgres"
+  "title": "Postgres overview - CNPG",
+  "uid": "postgres",
+  "version": 16,
+  "weekStart": ""
 }
