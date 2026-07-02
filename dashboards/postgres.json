@@ -1674,6 +1674,336 @@
         "x": 0,
         "y": 13
       },
+      "id": 93,
+      "panels": [],
+      "title": "WAL archiving",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "Number of WAL files that have been successfully archived",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": 0
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "green",
+                "value": 3
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 0,
+        "y": 14
+      },
+      "id": 94,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "cnpg_pg_stat_archiver_archived_count{pod=\"${instance}\"}",
+          "instant": false,
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Archived",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "Time since the last successful archival operation",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "yellow",
+                "value": 600
+              },
+              {
+                "color": "red",
+                "value": 1800
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 6,
+        "y": 14
+      },
+      "id": 96,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "cnpg_pg_stat_archiver_seconds_since_last_archival{pod=\"${instance}\"}",
+          "instant": false,
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Time since last archive",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "Number of failed attempts for archiving WAL files",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 3
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 12,
+        "y": 14
+      },
+      "id": 95,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "cnpg_pg_stat_archiver_failed_count{pod=\"${instance}\"}",
+          "instant": false,
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Failed",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "Time since the last failed archival operation",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "-1": {
+                  "color": "green",
+                  "index": 0,
+                  "text": "No failures"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 0
+              },
+              {
+                "color": "yellow",
+                "value": 600
+              },
+              {
+                "color": "green",
+                "value": 1800
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 18,
+        "y": 14
+      },
+      "id": 97,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "cnpg_pg_stat_archiver_seconds_since_last_failure{pod=\"${instance}\"}",
+          "instant": false,
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Time since last failure",
+      "type": "stat"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 19
+      },
       "id": 73,
       "panels": [],
       "title": "Query Insights Light",
@@ -1745,7 +2075,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 14
+        "y": 20
       },
       "id": 72,
       "maxDataPoints": 50,
@@ -1839,7 +2169,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 14
+        "y": 20
       },
       "id": 82,
       "maxDataPoints": 50,
@@ -1961,7 +2291,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 22
+        "y": 28
       },
       "id": 71,
       "options": {
@@ -2056,7 +2386,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 22
+        "y": 28
       },
       "id": 83,
       "maxDataPoints": 50,
@@ -2178,7 +2508,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 30
+        "y": 36
       },
       "id": 74,
       "options": {
@@ -2270,7 +2600,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 30
+        "y": 36
       },
       "id": 84,
       "maxDataPoints": 50,
@@ -2391,7 +2721,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 38
+        "y": 44
       },
       "id": 75,
       "options": {
@@ -2470,7 +2800,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 38
+        "y": 44
       },
       "id": 85,
       "maxDataPoints": 50,
@@ -2591,7 +2921,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 46
+        "y": 52
       },
       "id": 76,
       "options": {
@@ -2631,7 +2961,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 54
+        "y": 60
       },
       "id": 30,
       "panels": [],
@@ -2705,7 +3035,7 @@
         "h": 7,
         "w": 8,
         "x": 0,
-        "y": 55
+        "y": 61
       },
       "id": 1,
       "options": {
@@ -2813,7 +3143,7 @@
         "h": 7,
         "w": 8,
         "x": 8,
-        "y": 55
+        "y": 61
       },
       "id": 60,
       "options": {
@@ -2930,7 +3260,7 @@
         "h": 7,
         "w": 8,
         "x": 16,
-        "y": 55
+        "y": 61
       },
       "id": 3,
       "options": {
@@ -3035,7 +3365,7 @@
         "h": 7,
         "w": 8,
         "x": 0,
-        "y": 62
+        "y": 68
       },
       "id": 5,
       "options": {
@@ -3140,7 +3470,7 @@
         "h": 7,
         "w": 8,
         "x": 8,
-        "y": 62
+        "y": 68
       },
       "id": 6,
       "options": {
@@ -3245,7 +3575,7 @@
         "h": 7,
         "w": 8,
         "x": 16,
-        "y": 62
+        "y": 68
       },
       "id": 8,
       "options": {
@@ -3352,7 +3682,7 @@
         "h": 7,
         "w": 8,
         "x": 0,
-        "y": 69
+        "y": 75
       },
       "id": 14,
       "options": {
@@ -3458,7 +3788,7 @@
         "h": 7,
         "w": 8,
         "x": 8,
-        "y": 69
+        "y": 75
       },
       "id": 4,
       "options": {
@@ -3562,7 +3892,7 @@
         "h": 7,
         "w": 8,
         "x": 16,
-        "y": 69
+        "y": 75
       },
       "id": 7,
       "options": {
@@ -3668,7 +3998,7 @@
         "h": 7,
         "w": 8,
         "x": 0,
-        "y": 76
+        "y": 82
       },
       "id": 62,
       "options": {
@@ -3770,7 +4100,7 @@
         "h": 7,
         "w": 8,
         "x": 8,
-        "y": 76
+        "y": 82
       },
       "id": 64,
       "options": {
@@ -3919,7 +4249,7 @@
         "h": 7,
         "w": 8,
         "x": 16,
-        "y": 76
+        "y": 82
       },
       "id": 66,
       "options": {
@@ -4035,7 +4365,7 @@
         "h": 7,
         "w": 8,
         "x": 0,
-        "y": 83
+        "y": 89
       },
       "id": 68,
       "options": {
@@ -4078,7 +4408,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 90
+        "y": 96
       },
       "id": 89,
       "panels": [],
@@ -4151,7 +4481,7 @@
         "h": 7,
         "w": 8,
         "x": 0,
-        "y": 91
+        "y": 97
       },
       "id": 87,
       "options": {
@@ -4250,7 +4580,7 @@
         "h": 7,
         "w": 8,
         "x": 8,
-        "y": 91
+        "y": 97
       },
       "id": 90,
       "options": {
@@ -4348,7 +4678,7 @@
         "h": 7,
         "w": 8,
         "x": 16,
-        "y": 91
+        "y": 97
       },
       "id": 91,
       "options": {
@@ -4517,6 +4847,6 @@
   "timezone": "default",
   "title": "Postgres overview - CNPG",
   "uid": "postgres",
-  "version": 15,
+  "version": 16,
   "weekStart": ""
 }
