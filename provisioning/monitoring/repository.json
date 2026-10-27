@@ -1,0 +1,25 @@
+{
+  "apiVersion": "provisioning.grafana.app/v0alpha1",
+  "kind": "Repository",
+  "metadata": {
+    "name": "nais-monitoring"
+  },
+  "spec": {
+    "title": "Nais monitoring",
+    "type": "git",
+    "git": {
+      "url": "https://github.com/nais/dashboards.git",
+      "branch": "main",
+      "path": "dashboards/monitoring/"
+    },
+    "workflows": [],
+    "sync": {
+      "enabled": true,
+      "target": "folder",
+      "intervalSeconds": 60
+    },
+    "webhook": {
+      "disabled": true
+    }
+  }
+}
