@@ -10,8 +10,6 @@ fmt:
 
 compile:
 	jsonnet -J vendor src/ingress-main.libsonnet > dashboards/ingress.json
-	mkdir -p dashboards/monitoring
-	jsonnet -J vendor -m dashboards/monitoring src/monitoring-main.libsonnet
 
 deploy:
 	grr apply grr.jsonnet
@@ -20,5 +18,5 @@ deploy:
 check:
 	jsonnetfmt --test src/*.libsonnet
 	@set -e; tmp=$$(mktemp -d); trap 'rm -rf "$$tmp"' EXIT; \
-		jsonnet -J vendor -m "$$tmp" src/monitoring-main.libsonnet; \
-		diff -ru dashboards/monitoring "$$tmp"
+		jsonnet -J vendor src/ingress-main.libsonnet > "$$tmp/ingress.json"; \
+		diff -u dashboards/ingress.json "$$tmp/ingress.json"
