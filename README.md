@@ -5,7 +5,7 @@ This repository contains Grafana dashboards for monitoring applications running 
 ## Dashboards
 
 - [Ingress Logs](./src/ingress-main.libsonnet): Display logs from the ingress controller for a specific hostname.
-- [Nais Postgres – Fleet](./src/postgres-fleet-main.libsonnet): Provider operations for CNPG on `monitoring.nais.io`, using a tenant's `*-metrics` datasource (`nais` Mimir org). Select environment, team, Postgres and branch. Separate from the legacy `dashboards/postgres.json` exporter dashboard.
+- [Nais Postgres – Fleet](./src/postgres-fleet-main.libsonnet): Provider operations for CNPG on `monitoring.nais.io`, with one/several/all tenant `*-metrics` datasources (`nais` Mimir org), selected-fleet CPU/memory/PVC totals and separate tenant sections. Select environment, team, Postgres and branch. Separate from the legacy `dashboards/postgres.json` exporter dashboard.
 - [Postgres – Adoption & Capacity](./src/postgres-adoption-main.libsonnet): Compare reported Nais Postgres resources/teams with Cloud SQL instances across selected tenant datasources, with Nais Postgres CPU, memory and storage history. Cloud SQL covers all engines; this is not a complete migration ledger or cost comparison.
 
 ## Development
@@ -60,17 +60,44 @@ App Platform resource format (`dashboard.grafana.app/v1`). The source of truth i
 to check Jsonnet formatting and verify that the generated monitoring resources
 match their source without rewriting them.
 
-The overview shows observed primary count, actual streaming replicas, scrape
-success, missing SQL telemetry, backup age and worst data-volume usage per branch.
-Details include replay lag, WAL backlog/failures/archive age, reported recovery
-metadata, memory versus limit, restarts and pgrator reconciliation errors.
-Control-plane panels are environment-wide; team/Postgres/branch filters do not
-apply to them. The dashboard does not create alerts.
+The **Tenants** selector supports one, several or all provisioned `*-metrics`
+datasources, defaulting to NAV alone. The refresh interval is five minutes to
+limit multi-tenant load. Existing `var-datasource=<uid>` links still work. Each
+tenant gets a separate section containing all operational panels; inner section
+headings are text panels because nested Grafana rows would terminate the repeat
+scope. Environment/team/Postgres/branch filters apply to every tenant section.
+Their suggestions come from the first selected tenant; All matches across all
+selected tenants, and custom exact values can be entered for names absent from
+those suggestions. These are shared filters, not a joined inventory dropdown.
+
+The first table sums the **selected fleet** across the explicit overview sources
+below. A second table in each tenant section shows that tenant's footprint:
+
+- CPU: requested cores, observed CPU rate and summed positive container limits.
+- Memory: requests, working set and positive limits, in GiB.
+- PVC: requested storage, **total filesystem bytes used** and actual kubelet
+  filesystem capacity, in GiB. Each selected `pgdata` PVC is counted once,
+  including replicas and inactive branches; identical names in different
+  namespaces/environments remain separate. This is not SQL table size.
+
+Sample counts sit next to each sum and must be compared with observed pods/PVCs:
+a partial sum is not a complete footprint. Missing measurements are not zero.
+No positive CPU limit is shown as Unknown with zero limit samples, not an
+invented CPU capacity. Missing pod/PVC discovery is still outside this inventory.
+Poolers, operators, backup objects, network and logging are excluded.
+
+Operational panels retain observed primary count, actual streaming replicas,
+scrape success, missing SQL telemetry, backup age and worst volume usage per
+branch, plus replay lag, WAL, recovery metadata, memory/limit, restarts and
+reconciliation errors. Control-plane panels are environment-wide within their
+tenant; team/Postgres/branch filters do not apply to them. No alerts are created.
+The dashboard header has no Source or Postgres documentation links.
 
 #### Interpretation and limits
 
-- This is **one tenant at a time**, not a cross-tenant inventory. The branch
-  inventory comes from currently discovered `up{postgres!=""}` targets, including
+- Repeated tenant sections and selected-fleet sums are **observations, not a
+  complete cross-tenant inventory**. The branch inventory comes from currently
+  discovered `up{postgres!=""}` targets, including
   failed scrapes. Databases stuck before discovery and branches whose targets
   have all disappeared are not represented. `Unknown`/missing data is not healthy.
 - Primary observations do not test workload SQL, credentials, networking or the
@@ -124,10 +151,10 @@ are Git-managed; datasource and alert provisioning are unchanged.
 4. Configure **Pure Git** with URL `https://github.com/nais/dashboards.git`, the
    approved branch and path `dashboards/monitoring/`. Use folder-scoped sync,
    title **Nais monitoring**, read-only mode, a 60-second polling interval and
-   disabled webhooks. The public repository can be read anonymously; no GitHub
-   App, personal token or incoming webhook is needed for this read-only pilot.
-   If anonymous reads are refused by the running version, investigate rather
-   than granting write access or reusing a personal token.
+   disabled webhooks. Grafana 13.2.2's API supports anonymous public-repository
+   reads without a GitHub App/token; its UI wizard nevertheless requires a
+   token. Use an approved authenticated API context/browser session for that
+   setup rather than creating a personal token or granting write access.
 5. The same Repository resource can be applied with `gcx resources push --path
    provisioning/monitoring` using an approved authenticated Grafana context
    targeting **https://monitoring.nais.io**. Check the context and branch first;
@@ -172,11 +199,39 @@ local generation and preview alone do not publish anything.
 
 The **Tenants** selector discovers all provisioned Prometheus datasources matching
 `*-metrics`, including platform/test tenants, and defaults to all. Each selected
-tenant gets a repeated section; environment filtering applies to each section.
-Counts stay separate by environment. There is deliberately no cross-tenant or
-cross-environment total: an unobserved environment must not silently disappear
-from a claimed complete total. A tenant missing from datasource provisioning
-cannot be discovered by this dashboard.
+tenant gets a repeated detail section; environment filtering applies to those
+sections. Their counts remain separate by environment. The new overview above
+them deliberately ignores the detail selectors and covers all environments of
+its explicit source list: reported resource totals and history, unique teams
+and teams using both. It shows known/observed environments and known tenants vs
+configured sources alongside the totals. A partial reported count must not be
+read as complete inventory or a migration percentage. A tenant absent from
+datasource provisioning cannot be discovered by this dashboard.
+
+#### Cross-datasource overview scope
+
+Both dashboards use `src/postgres-overview.libsonnet` and
+`src/monitoring-sources.libsonnet` for explicit Mixed-datasource queries. Grafana
+row repetition supports dynamic datasource discovery, but cannot by itself sum
+all repeated sections. The shared source snapshot was discovered and checked
+against all eight central `*-metrics` datasource names/UIDs; it is query scope,
+not a canonical tenant registry. Its size is visible in the overview headings.
+
+Recheck `/api/datasources` before publishing changes. If datasource provisioning
+changes, refresh this snapshot and regenerate **both** dashboards. A newly
+provisioned source appears automatically in the tenant selectors, but does not
+enter the combined overview until this snapshot is updated. This deliberate
+tradeoff avoids a new collector, datasource, permission or infrastructure change.
+Fleet's overall query gates each source by the selected datasource UID regex
+and applies all database filters before summing. Adoption's overview always
+uses all configured sources/environments; only its detail sections are filtered.
+
+Overview table counts preserve missing data: sources with no usable inventory
+contribute no resource/team value, while remaining in the source/coverage counts.
+Unknown observations are not summed as `-1`, and completely missing values are
+shown as Unknown. Historical sums use the reported observations at each timestamp;
+coverage can change and KCC gauge rebuilds can cause sharp temporary dips.
+These are not authoritative deletions or migrations.
 
 #### Sources and counting rules
 
@@ -196,8 +251,11 @@ cannot be discovered by this dashboard.
   Periodic rebuilds can temporarily produce partial or absent inventories.
 - **Teams:** distinct reported namespaces within each environment, not a joined
   registry of application teams. A team using both products appears in both
-  product counts; the overlap is reported separately. The same team in dev and
-  prod is not a cross-environment unique-team total.
+  product counts; the overlap is reported separately. Detail rows retain the
+  environment. In the combined overview, a team is deduplicated by namespace
+  **inside each tenant across all environments**, then tenant counts are summed:
+  identity is tenant + namespace, not namespace alone. A team using the products
+  in different environments counts towards the combined overlap.
 - **Unknown:** a failed source scrape or absent/empty inventory is not zero,
   even when the exporter itself is up. The table maps the `-1` sentinel to
   `Unknown`; charts omit unknown observations. A known non-overlap between two
@@ -229,14 +287,21 @@ and [nais/api#571](https://github.com/nais/api/issues/571). An authoritative emp
 inventory also needs an explicit synced/complete signal; scrape success alone
 cannot distinguish zero resources from an unpopulated exporter.
 
-During implementation, every exported query was evaluated against all eight
-then-provisioned tenant datasources; the chart queries were also evaluated over
-30 days. Twenty-three synthetic read-only PromQL cases checked deduplication,
-unknown/zero handling, failed sources, environment isolation, overlap and
-pod/PVC capacity accounting. An isolated Grafana 13.2.2 browser preview used real
-read-only central datasource queries to check repeated tenants, NAV/prod and a
-tenant without a reported Postgres inventory. Central Git Sync and rendering
-must still be checked after publication.
+Validation includes instant queries against all eight then-provisioned tenant
+datasources and 30-day range queries for the adoption charts. Forty-four new
+synthetic read-only PromQL cases cover footprint sums, PVC/pod deduplication,
+namespace/environment isolation, inactive branches, partial/absent/zero metrics,
+datasource/filter selection, overview team deduplication, overlap and coverage.
+The existing 24 fleet and 23 adoption semantic cases also pass.
+
+An isolated Grafana 13.2.2 browser preview uses real read-only central datasource
+queries: default Fleet/NAV, two tenants, All eight tenants, a custom team filter
+absent from the first tenant's suggestions, and Adoption filtered/all details.
+It checks actual summary rows, not just HTTP success. All repeats every Fleet
+operational section, alongside its footprint tables. Source/doc links are absent;
+no NaN, query or page errors occurred. The central dashboard resource versions
+remain unchanged during preview. Central Git Sync and actual rendering must
+still be checked after any publication.
 
 ## License
 

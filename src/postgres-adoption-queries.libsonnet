@@ -1,5 +1,5 @@
 // Adoption uses controller resource inventory, never SQL sessions or pod counts.
-// Keep environments separate: a missing inventory must not disappear in a total.
+// Detail counts retain environments; overview totals report inventory coverage.
 local env = 'k8s_cluster_name=~"${environment:regex}"';
 local podKey = 'k8s_cluster_name, namespace, pod';
 local pvcKey = 'k8s_cluster_name, namespace, persistentvolumeclaim';
@@ -34,7 +34,35 @@ local signals = [
   { name: 'Teams using both', expr: bothTeams },
   { name: 'Nais Postgres branches', expr: branches },
 ];
+local allEnvironments(expr) = std.strReplace(expr, env, 'k8s_cluster_name=~".*"');
+local expectedEnvironments = 'group by (k8s_cluster_name) ((' + pgrator + ') or (' + recorder + '))';
+local zeroCount(expr) = '(count(' + expr + ') or vector(0))';
+local observedTeams(expr, health) = 'group by (exported_namespace) ((' + expr + ' > 0) and on (k8s_cluster_name) (' + health + ' == 1))';
+local uniquePgTeams = observedTeams(info('postgres.nais.io'), pgrator);
+local uniqueSqlTeams = observedTeams(sql, recorder);
+local globalProducts = [
+  { name: 'Nais Postgres', resources: resources, teams: uniquePgTeams },
+  { name: 'Cloud SQL (all engines)', resources: sqlResources, teams: uniqueSqlTeams },
+];
+local globalSignals(p) = [
+  { name: 'Reported resources', expr: 'sum(' + p.resources + ' >= 0)' },
+  { name: 'Unique teams (reported)', expr: 'count(' + p.teams + ')' },
+  { name: 'Environments with inventory', expr: zeroCount(p.resources + ' >= 0') },
+  { name: 'Observed environments', expr: zeroCount(expectedEnvironments) },
+  { name: 'Tenants with inventory', expr: '(clamp_max(' + zeroCount(p.resources + ' >= 0') + ', 1))' },
+  { name: 'Configured tenants', expr: 'vector(1)' },
+];
 {
+  // Every overview expression ignores the detail filters. Team identity remains
+  // inside the tenant query; summing these counts preserves tenant+namespace.
+  overviewInventory: allEnvironments(std.join(' or ', [
+    'label_replace(label_replace((' + s.expr + '), "product", "' + p.name + '", "", ""), "signal", "' + s.name + '", "", "")'
+    for p in globalProducts
+    for s in globalSignals(p)
+  ])),
+  overviewOverlap: allEnvironments('(count((' + uniquePgTeams + ') and on (exported_namespace) (' + uniqueSqlTeams + '))) or (0 * sum(' + resources + ' >= 0) * sum(' + sqlResources + ' >= 0))'),
+  overviewResources: allEnvironments('sum(' + resources + ' >= 0)'),
+  overviewCloudsql: allEnvironments('sum(' + sqlResources + ' >= 0)'),
   // Table includes unknown source observations; charts omit sentinels, leaving gaps.
   inventory: std.join(' or ', ['label_replace((' + s.expr + '), "signal", "' + s.name + '", "", "")' for s in signals]),
   resources: '(' + resources + ') >= 0',

@@ -28,6 +28,47 @@ local backupAge = knownOrUnknown('time() - (' + backup + ' > 0)');
 local scrape = '100 * ' + aggregate('sum', labels, targets) + ' / ' + aggregate('count', labels, targets);
 local telemetry = aggregate('sum', labels, inventory + ' unless on (' + pods + ') ' + podMetric('cnpg_collector_up')) + ' or (0 * ' + branches + ')';
 local errors = aggregate('max', labels, metric('cnpg_collector_last_collection_error'));
+// Footprint uses selected discovered DB pods, not the worst branch/pod.
+local selectedPods = aggregate('group', podKey, inventory);
+local selectedVolumes = aggregate('group', pvcKey, podVolumes + ' * on (' + podKey + ') group_left() ' + selectedPods);
+local containerValue(name, extra='') = 'max by (' + podKey + ') (' + name + '{container="postgres", k8s_cluster_name=~"${environment:regex}"' + extra + '}) * on (' + podKey + ') ' + selectedPods;
+local volumeValue(name) = volumeMetric(name) + ' * on (' + pvcKey + ') ' + selectedVolumes;
+local samples(expr, objects) = '(count(' + expr + ') or (0 * count(' + objects + ')))';
+local footprint = [
+  {
+    name: 'CPU (cores)',
+    scale: 1,
+    objects: selectedPods,
+    requested: containerValue('kube_pod_container_resource_requests', ', resource="cpu"'),
+    used: 'max by (' + podKey + ') (rate(container_cpu_usage_seconds_total{container="postgres", k8s_cluster_name=~"${environment:regex}"}[$__rate_interval])) * on (' + podKey + ') ' + selectedPods,
+    capacity: '(' + containerValue('kube_pod_container_resource_limits', ', resource="cpu"') + ') > 0',
+  },
+  {
+    name: 'Memory (GiB)',
+    scale: 1073741824,
+    objects: selectedPods,
+    requested: containerValue('kube_pod_container_resource_requests', ', resource="memory"'),
+    used: containerValue('container_memory_working_set_bytes'),
+    capacity: '(' + containerValue('kube_pod_container_resource_limits', ', resource="memory"') + ') > 0',
+  },
+  {
+    name: 'PVC (GiB)',
+    scale: 1073741824,
+    objects: selectedVolumes,
+    requested: volumeValue('kube_persistentvolumeclaim_resource_requests_storage_bytes'),
+    used: volumeValue('kubelet_volume_stats_used_bytes'),
+    capacity: volumeValue('kubelet_volume_stats_capacity_bytes'),
+  },
+];
+local capacitySignals(f) = [
+  { name: 'Requested', expr: 'sum(' + f.requested + ') / ' + f.scale },
+  { name: 'Used', expr: 'sum(' + f.used + ') / ' + f.scale },
+  { name: 'Limit / capacity', expr: 'sum(' + f.capacity + ') / ' + f.scale },
+  { name: 'Requested samples', expr: samples(f.requested, f.objects) },
+  { name: 'Usage samples', expr: samples(f.used, f.objects) },
+  { name: 'Limit / capacity samples', expr: samples(f.capacity, f.objects) },
+  { name: 'Observed pods / PVCs', expr: 'count(' + f.objects + ')' },
+];
 local summary = [
   { name: 'Observed primaries', expr: primaries },
   { name: 'Streaming replicas', expr: streaming },
@@ -37,6 +78,11 @@ local summary = [
   { name: 'Disk used', expr: knownOrUnknown(diskUsage) },
 ];
 {
+  capacity: std.join(' or ', [
+    'label_replace(label_replace((' + s.expr + '), "product", "' + f.name + '", "", ""), "signal", "' + s.name + '", "", "")'
+    for f in footprint
+    for s in capacitySignals(f)
+  ]),
   branches: branches,
   primaries: primaries,
   streaming: streaming,

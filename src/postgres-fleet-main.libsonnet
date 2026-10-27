@@ -1,6 +1,7 @@
 local g = import './g.libsonnet';
 local q = import './postgres-fleet-queries.libsonnet';
 local variables = import './postgres-fleet-variables.libsonnet';
+local overview = import './postgres-overview.libsonnet';
 local datasource = { type: 'prometheus', uid: '${datasource}' };
 local legend = '{{k8s_cluster_name}} / {{team}} / {{postgres}} / {{branch}}';
 local thresholds(steps) = { mode: 'absolute', steps: steps };
@@ -47,7 +48,9 @@ local series(id, title, expr, x, y, unit='short', description='') =
     fieldConfig+: { defaults+: { custom: { drawStyle: 'line', lineWidth: 1, fillOpacity: 5, spanNulls: false, showPoints: 'never' } } },
     options: { legend: { displayMode: 'table', placement: 'bottom', calcs: ['lastNotNull', 'max'] }, tooltip: { mode: 'multi', sort: 'desc' } },
   };
-local row(id, title, y) = { id: id, title: title, type: 'row', collapsed: false, panels: [], gridPos: { x: 0, y: y, w: 24, h: 1 } };
+// Real rows delimit Grafana repeat scope. Keep inner section headings as text
+// panels so every operational panel repeats, not only the first section.
+local row(id, title, y) = { id: id, title: title, type: 'text', transparent: true, options: { mode: 'markdown', content: '' }, gridPos: { x: 0, y: y, w: 24, h: 1 } };
 local stat(id, title, expr, x, w, risk=true) =
   panel(id, title, 'stat', expr, x, 0, w=w, h=3)
   + {
@@ -70,28 +73,55 @@ local table(id, title, expr, x, y, unit, description) =
   };
 local override(name, properties) = { matcher: { id: 'byName', options: name }, properties: properties };
 
+local capacityPanel(id, title, targets, y) = {
+  id: id,
+  title: title,
+  type: 'table',
+  datasource: overview.mixed,
+  gridPos: { x: 0, y: y, w: 24, h: 7 },
+  targets: targets,
+  transformations: overview.matrix + [{ id: 'organize', options: { indexByName: {
+    Scope: 0,
+    Requested: 1,
+    Used: 2,
+    'Limit / capacity': 3,
+    'Requested samples': 4,
+    'Usage samples': 5,
+    'Limit / capacity samples': 6,
+    'Observed pods / PVCs': 7,
+  } } }],
+  options: { showHeader: true, cellHeight: 'sm' },
+  fieldConfig: { defaults: { unit: 'none', decimals: 3, noValue: 'Unknown' }, overrides: [
+    { matcher: { id: 'byName', options: name }, properties: [{ id: 'decimals', value: 0 }] }
+    for name in ['Requested samples', 'Usage samples', 'Limit / capacity samples', 'Observed pods / PVCs']
+  ] },
+  description: 'Reported sums for the selected environments/teams/Postgres/branches, including replicas and inactive branches. CPU is cores; memory/storage are GiB. CPU/memory capacity means positive container limits, not node allocation; PVC capacity is actual kubelet filesystem capacity, requested is separate. Each discovered pgdata PVC counts once. Compare sample counts with observed pods/PVCs: fewer samples means a partial sum, not a complete footprint. Missing values are Unknown, not zero. Missing pod/PVC discovery is outside this inventory. Excludes poolers, operators, backup objects, network and logging. The overall table queries the explicit ' + overview.scope + '; repeated tenant sections discover datasources dynamically.',
+};
+
 g.dashboard.new('Nais Postgres – Fleet')
 + g.dashboard.withUid('nais-postgres-fleet')
-+ g.dashboard.withDescription('Provider operations for Nais Postgres (CNPG): observed primaries, replication, Barman backups, WAL and storage. One tenant at a time; not an end-to-end availability or restore guarantee.')
++ g.dashboard.withDescription('Provider operations for Nais Postgres (CNPG): one, several or all tenant datasources, with separate repeated sections and reported CPU/memory/PVC sums. Observed primaries, replication, Barman backups, WAL and storage; not complete inventory, end-to-end availability or a restore guarantee.')
 + g.dashboard.withTags(['nais', 'postgres', 'cnpg', 'operations'])
 + g.dashboard.time.withFrom('now-6h')
 + g.dashboard.withTimezone('browser')
 + g.dashboard.withEditable(false)
 + g.dashboard.withVariables(variables)
 + {
-  refresh: '1m',
+  refresh: '5m',
   graphTooltip: 1,
-  links: [
-    { title: 'Source', type: 'link', url: 'https://github.com/nais/dashboards/blob/main/src/postgres-fleet-main.libsonnet', targetBlank: true },
-    { title: 'Postgres documentation', type: 'link', url: 'https://docs.nais.io/persistence/postgres/', targetBlank: true },
-  ],
 }
 + g.dashboard.withPanels([
+  { id: 100, title: 'Selected fleet footprint — ' + overview.scope, type: 'row', collapsed: false, panels: [], gridPos: { x: 0, y: 0, w: 24, h: 1 } },
+  capacityPanel(101, 'Reported totals — selected tenants / environments / databases', overview.targets(function(source) overview.selected(q.capacity, source.uid)), 1),
+  { id: 102, title: '${datasource:text}', type: 'row', collapsed: false, repeat: 'datasource', panels: [], gridPos: { x: 0, y: 8, w: 24, h: 1 } },
+] + std.map(function(p) p { gridPos+: { y: p.gridPos.y + 9 + (if p.gridPos.y >= 3 && p.id != 99 then 7 else 0) } }, [
   stat(2, 'Observed branches', 'count(' + q.branches + ')', 0, 4, risk=false),
   stat(3, 'Primary count ≠ 1', countRisk(q.noPrimary), 4, 5),
   stat(4, 'Replica absent / unknown', countRisk(q.noReplica), 9, 5),
   stat(5, 'Backup old / unknown', countRisk(q.backupNeedsAttention), 14, 5),
   stat(6, 'Scrape failures', countRisk(q.scrapeProblems), 19, 5),
+  capacityPanel(99, 'Tenant footprint — reported CPU / memory / PVC totals', [target(q.capacity, true) + { format: 'time_series', legendFormat: '{{product}}|{{signal}}' }], 3)
+  + { datasource: datasource },
   panel(7,
         'Fleet — environment / team / Postgres / branch',
         'table',
@@ -159,4 +189,4 @@ g.dashboard.new('Nais Postgres – Fleet')
   series(41, 'Pgrator reconciliation errors / second', q.controllerErrors, 0, 68, 'ops', 'All Postgres controllers in the selected environments. Reconciliation errors are not an inventory of stalled database creation.')
   + { targets: [target(q.controllerErrors) + { legendFormat: '{{k8s_cluster_name}} / {{controller}}' }] },
   series(42, 'CNPG SQL metric collection errors', q.collectionErrors, 12, 68, description='Maximum last-collection-error flag per branch. Missing telemetry is separately visible in the fleet table.'),
-])
+]))

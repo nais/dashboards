@@ -1,5 +1,6 @@
 local g = import './g.libsonnet';
 local q = import './postgres-adoption-queries.libsonnet';
+local overview = import './postgres-overview.libsonnet';
 local datasource = { type: 'prometheus', uid: '${tenant}' };
 local target(ref, expr, legend, instant=false) = {
   refId: ref,
@@ -28,9 +29,42 @@ local series(id, title, targets, x, y, w=12, unit='short', description='') =
   };
 local capacity = 'Nais Postgres database containers/data volumes only, across all discovered branches and replicas. Excludes poolers, operators, backup storage, network and logging. Missing Kubernetes/discovery data is not zero. Not Cloud SQL capacity or a billing estimate.';
 
+local overviewDescription = 'Across the explicit ' + overview.scope + ' and every observed environment, independent of the detail selectors below. Reported counts only: compare inventory coverage with observed environments and configured tenants. Missing sources/inventory do not become zero; a partial sum is not complete inventory. Cloud SQL covers all engines/statuses. Teams are unique tenant + namespace across environments, not sums of dev/prod team counts. New/deleted datasource provisioning requires refreshing monitoring-sources.libsonnet. No migration percentage or event counts are inferred.';
+local globalHistory(id, title, expr, x) =
+  series(id, title, overview.targets(expr, false, 'tenant'), x, 7, description=overviewDescription + ' Historical sums use the reported observations at each timestamp; coverage can change. No data from any source leaves a gap, not an asserted zero.')
+  + { datasource: overview.mixed, transformations: overview.history };
+local globalPanels = [
+  { id: 100, title: 'Overview — ' + overview.scope + ' · all environments', type: 'row', collapsed: false, panels: [], gridPos: { x: 0, y: 0, w: 24, h: 1 } },
+  panel(101, 'Across tenants and environments — reported inventory', 'table', overview.targets(q.overviewInventory), 0, 1, 18, 6, description=overviewDescription)
+  + {
+    datasource: overview.mixed,
+    transformations: overview.matrix + [{ id: 'organize', options: {
+      indexByName: { Scope: 0, 'Reported resources': 1, 'Unique teams (reported)': 2, 'Environments with inventory': 3, 'Observed environments': 4, 'Tenants with inventory': 5, 'Configured tenants': 6 },
+      renameByName: { 'Unique teams (reported)': 'Unique teams', 'Environments with inventory': 'Known envs', 'Observed environments': 'Observed envs', 'Tenants with inventory': 'Known tenants', 'Configured tenants': 'Sources' },
+    } }],
+    options: { showHeader: true, cellHeight: 'sm' },
+    fieldConfig+: { defaults+: { unit: 'none', decimals: 0 }, overrides: [
+      { matcher: { id: 'byName', options: 'Scope' }, properties: [{ id: 'custom.width', value: 220 }] },
+    ] },
+  },
+  panel(102, 'Teams using both — reported', 'stat', overview.targets(q.overviewOverlap), 18, 1, 6, 6, description=overviewDescription + ' A team can use the two products in different environments. Partial inventories can miss teams using both.')
+  + {
+    datasource: overview.mixed,
+    transformations: [
+      { id: 'seriesToRows', options: {} },
+      { id: 'filterFieldsByName', options: { include: { names: ['Value'] } } },
+      { id: 'reduce', options: { reducers: ['sum'] } },
+    ],
+    fieldConfig+: { defaults+: { decimals: 0 } },
+    options: { graphMode: 'none', colorMode: 'none', reduceOptions: { calcs: ['lastNotNull'], fields: '', values: false } },
+  },
+  globalHistory(103, 'Nais Postgres — reported total over time', q.overviewResources, 0),
+  globalHistory(104, 'Cloud SQL (all engines) — reported total over time', q.overviewCloudsql, 12),
+];
+
 g.dashboard.new('Postgres – Adoption & Capacity')
 + g.dashboard.withUid('nais-postgres-adoption')
-+ g.dashboard.withDescription('Adoption and capacity across the selected tenant datasources, one repeated section per tenant. Controller-reported Nais Postgres resources versus Config Connector Cloud SQL instances (all engines; engine labels unavailable). Unknown is not zero. Capacity covers discovered Nais Postgres DB pods, branches and replicas, not Cloud SQL or total service cost. Historical coverage depends on metric availability; no retrospective inventory is reconstructed.')
++ g.dashboard.withDescription('Overall reported adoption across configured tenant sources and all environments, followed by one repeated detail section per selected tenant. Controller-reported Nais Postgres resources versus Config Connector Cloud SQL instances (all engines; engine labels unavailable). Unknown is not zero. Capacity covers discovered Nais Postgres DB pods, branches and replicas, not Cloud SQL or total service cost. Historical coverage depends on metric availability; no retrospective inventory is reconstructed.')
 + g.dashboard.withTags(['nais', 'postgres', 'adoption', 'capacity'])
 + g.dashboard.time.withFrom('now-30d')
 + g.dashboard.withTimezone('browser')
@@ -66,10 +100,10 @@ g.dashboard.new('Postgres – Adoption & Capacity')
   refresh: '5m',
   graphTooltip: 1,
 }
-+ g.dashboard.withPanels([
++ g.dashboard.withPanels(globalPanels + std.map(function(p) p { gridPos+: { y: p.gridPos.y + 14 } }, [
   {
     id: 1,
-    title: '${tenant:text}',
+    title: 'Tenant details — ${tenant:text}',
     type: 'row',
     collapsed: false,
     repeat: 'tenant',
@@ -123,4 +157,4 @@ g.dashboard.new('Postgres – Adoption & Capacity')
     target('A', q.pgratorSource, '{{k8s_cluster_name}} · pgrator'),
     target('B', q.cloudsqlSource, '{{k8s_cluster_name}} · Config Connector recorder'),
   ], 0, 21, 24, description='1 = at least one endpoint successfully scraped; 0 = discovered but failed; a missing series is not healthy. Scrape success alone does not establish a complete, synced controller cache or valid inventory. This view does not use cumulative API watcher add/remove event counters as current resource counts.'),
-])
+]))
