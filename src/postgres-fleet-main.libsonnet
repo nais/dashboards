@@ -1,7 +1,6 @@
 local g = import './g.libsonnet';
 local q = import './postgres-fleet-queries.libsonnet';
 local variables = import './postgres-fleet-variables.libsonnet';
-local overview = import './postgres-overview.libsonnet';
 local datasource = { type: 'prometheus', uid: '${datasource}' };
 local legend = '{{k8s_cluster_name}} / {{team}} / {{postgres}} / {{branch}}';
 local thresholds(steps) = { mode: 'absolute', steps: steps };
@@ -73,34 +72,11 @@ local table(id, title, expr, x, y, unit, description) =
   };
 local override(name, properties) = { matcher: { id: 'byName', options: name }, properties: properties };
 
-local capacityPanel(id, title, targets, y) = {
-  id: id,
-  title: title,
-  type: 'table',
-  datasource: overview.mixed,
-  gridPos: { x: 0, y: y, w: 24, h: 7 },
-  targets: targets,
-  transformations: overview.matrix + [{ id: 'organize', options: { indexByName: {
-    Scope: 0,
-    Requested: 1,
-    Used: 2,
-    'Limit / capacity': 3,
-    'Requested samples': 4,
-    'Usage samples': 5,
-    'Limit / capacity samples': 6,
-    'Observed pods / PVCs': 7,
-  } } }],
-  options: { showHeader: true, cellHeight: 'sm' },
-  fieldConfig: { defaults: { unit: 'none', decimals: 3, noValue: 'Unknown' }, overrides: [
-    { matcher: { id: 'byName', options: name }, properties: [{ id: 'decimals', value: 0 }] }
-    for name in ['Requested samples', 'Usage samples', 'Limit / capacity samples', 'Observed pods / PVCs']
-  ] },
-  description: 'Reported sums for the selected environments/teams/Postgres/branches, including replicas and inactive branches. CPU is cores; memory/storage are GiB. CPU/memory capacity means positive container limits, not node allocation; PVC capacity is actual kubelet filesystem capacity, requested is separate. Each discovered pgdata PVC counts once. Compare sample counts with observed pods/PVCs: fewer samples means a partial sum, not a complete footprint. Missing values are Unknown, not zero. Missing pod/PVC discovery is outside this inventory. Excludes poolers, operators, backup objects, network and logging. The overall table queries the explicit ' + overview.scope + '; repeated tenant sections discover datasources dynamically.',
-};
+local resourceColumns = ['CPU requested', 'CPU used', 'Memory requested', 'Memory used', 'PVC requested', 'PVC capacity', 'PVC used'];
 
 g.dashboard.new('Nais Postgres – Fleet')
 + g.dashboard.withUid('nais-postgres-fleet')
-+ g.dashboard.withDescription('Provider operations for Nais Postgres (CNPG): one, several or all tenant datasources, with separate repeated sections and reported CPU/memory/PVC sums. Observed primaries, replication, Barman backups, WAL and storage; not complete inventory, end-to-end availability or a restore guarantee.')
++ g.dashboard.withDescription('Provider operations for Nais Postgres (CNPG): one, several or all tenant datasources, with separate repeated sections and branch-level CPU/memory/PVC resources with tenant totals. Observed primaries, replication, Barman backups, WAL and storage; not complete inventory, end-to-end availability or a restore guarantee.')
 + g.dashboard.withTags(['nais', 'postgres', 'cnpg', 'operations'])
 + g.dashboard.time.withFrom('now-6h')
 + g.dashboard.withTimezone('browser')
@@ -111,61 +87,13 @@ g.dashboard.new('Nais Postgres – Fleet')
   graphTooltip: 1,
 }
 + g.dashboard.withPanels([
-  { id: 100, title: 'Selected fleet footprint — ' + overview.scope, type: 'row', collapsed: false, panels: [], gridPos: { x: 0, y: 0, w: 24, h: 1 } },
-  capacityPanel(101, 'Reported totals — selected tenants / environments / databases', overview.targets(function(source) overview.selected(q.capacity, source.uid)), 1),
-  { id: 102, title: '${datasource:text}', type: 'row', collapsed: false, repeat: 'datasource', panels: [], gridPos: { x: 0, y: 8, w: 24, h: 1 } },
-] + std.map(function(p) p { gridPos+: { y: p.gridPos.y + 9 + (if p.gridPos.y >= 3 && p.id != 99 then 7 else 0) } }, [
+  { id: 102, title: '${datasource:text}', type: 'row', collapsed: false, repeat: 'datasource', panels: [], gridPos: { x: 0, y: 0, w: 24, h: 1 } },
+] + std.map(function(p) p { gridPos+: { y: p.gridPos.y + 1 } }, std.sort([
   stat(2, 'Observed branches', 'count(' + q.branches + ')', 0, 4, risk=false),
   stat(3, 'Primary count ≠ 1', countRisk(q.noPrimary), 4, 5),
   stat(4, 'Replica absent / unknown', countRisk(q.noReplica), 9, 5),
   stat(5, 'Backup old / unknown', countRisk(q.backupNeedsAttention), 14, 5),
   stat(6, 'Scrape failures', countRisk(q.scrapeProblems), 19, 5),
-  capacityPanel(99, 'Tenant footprint — reported CPU / memory / PVC totals', [target(q.capacity, true) + { format: 'time_series', legendFormat: '{{product}}|{{signal}}' }], 3)
-  + { datasource: datasource },
-  panel(7,
-        'Fleet — environment / team / Postgres / branch',
-        'table',
-        q.summary,
-        0,
-        3,
-        w=24,
-        h=12,
-        description='Current observations, including inactive branches. Exactly one observed primary is expected; streaming replicas are actual connections, not desired HA count. Unknown backup/disk/SQL telemetry requires investigation. Colour thresholds are triage hints, not alert policies.')
-  + {
-    options: { showHeader: true, cellHeight: 'sm' },
-    transformations: [
-      { id: 'groupingToMatrix', options: { rowField: 'resource', columnField: 'signal', valueField: 'Value', emptyValue: 'null' } },
-      { id: 'organize', options: { renameByName: { 'resource\\signal': 'Environment / Team / Postgres / Branch' }, indexByName: {
-        'resource\\signal': 0,
-        'Observed primaries': 1,
-        'Streaming replicas': 2,
-        'Scrapes OK': 3,
-        'Missing SQL telemetry': 4,
-        'Backup age': 5,
-        'Disk used': 6,
-      } } },
-    ],
-    fieldConfig+: {
-      defaults+: { color: { mode: 'thresholds' }, custom: { cellOptions: { type: 'color-text' }, filterable: true } },
-      overrides: [
-        override('Observed primaries', [
-          { id: 'thresholds', value: thresholds([{ value: null, color: 'red' }, { value: 1, color: 'green' }, { value: 2, color: 'red' }]) },
-          { id: 'decimals', value: 0 },
-        ]),
-        override('Streaming replicas', [
-          { id: 'thresholds', value: thresholds([{ value: null, color: 'gray' }, { value: 0, color: 'yellow' }, { value: 1, color: 'green' }]) },
-          { id: 'decimals', value: 0 },
-        ]),
-        override('Scrapes OK', [
-          { id: 'unit', value: 'percent' },
-          { id: 'thresholds', value: thresholds([{ value: null, color: 'red' }, { value: 100, color: 'green' }]) },
-        ]),
-        override('Missing SQL telemetry', [{ id: 'thresholds', value: attention }, { id: 'decimals', value: 0 }]),
-        override('Backup age', [{ id: 'unit', value: 's' }, { id: 'thresholds', value: backupThresholds }]),
-        override('Disk used', [{ id: 'unit', value: 'percent' }, { id: 'thresholds', value: diskThresholds }]),
-      ],
-    },
-  },
   row(10, 'Availability and replication — observations, not an end-to-end probe', 15),
   series(11, 'Observed primary count', q.primaries, 0, 16, description='Zero includes missing SQL telemetry. Does not test SQL read/write, pooler, network or credentials.'),
   series(12, 'Streaming replicas at primary', q.streaming, 12, 16, description='Actual streaming connections. Desired replica count is not exported here; one connection does not prove the configured HA topology is satisfied.'),
@@ -179,7 +107,80 @@ g.dashboard.new('Nais Postgres – Fleet')
   series(24, 'WAL archive failures', q.walFailures, 12, 38, description='Increase in failed archive attempts over $__rate_interval. Retries can occur; inspect backlog and successful progress together.'),
   series(25, 'Time since last successful WAL archive', q.walArchiveAge, 0, 45, 's', 'Informational only. Idle databases may not generate new WAL; age alone is not an archive-stalled alarm. Only positive archive timestamps are shown.'),
   table(26, 'Last failed backup (reported)', q.lastBackupFailure, 12, 45, 'dateTimeAsIso', 'Historical failures can remain after a successful backup. Compare with latest available backup; an empty table is not proof of working backups.'),
-  row(30, 'Capacity — worst observed pod per branch', 52),
+  row(30, 'Capacity — worst-pod observations', 52),
+  panel(7,
+        'Fleet — environment / team / Postgres / branch',
+        'table',
+        q.summary,
+        0,
+        3,
+        w=24,
+        h=12,
+        description='Current observations, including replicas and inactive branches. Major version requires a positive CNPG version from every discovered pod with agreement across pods; otherwise Unknown. It is not the desired version from the parent Postgres resource. CPU is requested cores and observed CPU rate; memory is requested bytes and working set; PVC is requested size, actual filesystem capacity and bytes used. Each pgdata claim is counted once per branch. Resource footers sum this tenant and the selected filters, not all tenants. Missing/partial measurements make the affected branch cell and resource total Unknown, never zero or a silently partial footprint. Missing pod discovery remains outside this inventory. Excludes poolers, operators, backup objects, network and logging. Exactly one observed primary is expected; streaming replicas are actual connections, not desired HA count. Colour thresholds are triage hints, not alert policies.')
+  + {
+    options: { showHeader: true, cellHeight: 'sm' },
+    transformations: [
+      { id: 'groupingToMatrix', options: { rowField: 'resource', columnField: 'signal', valueField: 'Value', emptyValue: 'null' } },
+      { id: 'organize', options: { renameByName: { 'resource\\signal': 'Environment / Team / Postgres / Branch' }, indexByName: {
+        'resource\\signal': 0,
+        'Major version': 1,
+        'Observed primaries': 2,
+        'Streaming replicas': 3,
+        'Scrapes OK': 4,
+        'Missing SQL telemetry': 5,
+        'Backup age': 6,
+        'Disk used': 7,
+      } + { [resourceColumns[i]]: i + 8 for i in std.range(0, std.length(resourceColumns) - 1) } } },
+      { id: 'sortBy', options: { sort: [{ field: 'Environment / Team / Postgres / Branch' }] } },
+    ],
+    fieldConfig+: {
+      defaults+: { color: { mode: 'thresholds' }, custom: { cellOptions: { type: 'color-text' }, filterable: true, width: 85, minWidth: 70, wrapHeaderText: true } },
+      overrides: [
+        override('Environment / Team / Postgres / Branch', [{ id: 'custom.width', value: 260 }]),
+        override('Major version', [
+          { id: 'displayName', value: 'PG major' },
+          { id: 'unit', value: 'none' },
+          { id: 'decimals', value: 0 },
+          { id: 'custom.width', value: 75 },
+          { id: 'custom.cellOptions', value: { type: 'auto' } },
+        ]),
+        {
+          matcher: { id: 'byNames', options: { mode: 'include', names: resourceColumns } },
+          properties: [
+            { id: 'custom.footer.reducers', value: ['sum'] },
+            { id: 'custom.cellOptions', value: { type: 'auto' } },
+            { id: 'unit', value: 'bytes' },
+            { id: 'decimals', value: 2 },
+            { id: 'custom.width', value: 95 },
+            { id: 'mappings', value: [{ type: 'range', options: { to: -1, result: { text: 'Unknown', color: 'gray' } } }] },
+          ],
+        },
+        { matcher: { id: 'byNames', options: { mode: 'include', names: ['CPU requested', 'CPU used'] } }, properties: [{ id: 'unit', value: 'cores' }] },
+        override('Observed primaries', [
+          { id: 'displayName', value: 'Primary' },
+          { id: 'custom.width', value: 90 },
+          { id: 'thresholds', value: thresholds([{ value: null, color: 'red' }, { value: 1, color: 'green' }, { value: 2, color: 'red' }]) },
+          { id: 'decimals', value: 0 },
+        ]),
+        override('Streaming replicas', [
+          { id: 'displayName', value: 'Replicas' },
+          { id: 'custom.width', value: 90 },
+          { id: 'thresholds', value: thresholds([{ value: null, color: 'gray' }, { value: 0, color: 'yellow' }, { value: 1, color: 'green' }]) },
+          { id: 'decimals', value: 0 },
+        ]),
+        override('Scrapes OK', [
+          { id: 'unit', value: 'percent' },
+          { id: 'thresholds', value: thresholds([{ value: null, color: 'red' }, { value: 100, color: 'green' }]) },
+        ]),
+        override('Missing SQL telemetry', [{ id: 'displayName', value: 'SQL gaps' }, { id: 'thresholds', value: attention }, { id: 'decimals', value: 0 }]),
+        override('Backup age', [{ id: 'unit', value: 's' }, { id: 'thresholds', value: backupThresholds }]),
+        override('Disk used', [{ id: 'unit', value: 'percent' }, { id: 'thresholds', value: diskThresholds }]),
+      ] + [
+        override(name, [{ id: 'displayName', value: std.strReplace(name, 'requested', 'req.') }])
+        for name in ['CPU requested', 'Memory requested', 'PVC requested']
+      ],
+    },
+  },
   series(31, 'Data volume used', q.diskUsage, 0, 53, 'percent', 'Highest pgdata filesystem usage per branch, joined via the pod/PVC relationship. Uses actual filesystem capacity, not requested disk size.')
   + { fieldConfig+: { defaults+: { thresholds: diskThresholds } } },
   series(32, 'Least free data volume space', q.diskFree, 12, 53, 'bytes', 'Lowest available pgdata filesystem space per branch. Missing kubelet/PVC metrics are unknown, not zero usage.'),
@@ -189,4 +190,4 @@ g.dashboard.new('Nais Postgres – Fleet')
   series(41, 'Pgrator reconciliation errors / second', q.controllerErrors, 0, 68, 'ops', 'All Postgres controllers in the selected environments. Reconciliation errors are not an inventory of stalled database creation.')
   + { targets: [target(q.controllerErrors) + { legendFormat: '{{k8s_cluster_name}} / {{controller}}' }] },
   series(42, 'CNPG SQL metric collection errors', q.collectionErrors, 12, 68, description='Maximum last-collection-error flag per branch. Missing telemetry is separately visible in the fleet table.'),
-]))
+], function(p) p.gridPos.y * 24 + p.gridPos.x)))

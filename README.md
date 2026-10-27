@@ -5,7 +5,7 @@ This repository contains Grafana dashboards for monitoring applications running 
 ## Dashboards
 
 - [Ingress Logs](./src/ingress-main.libsonnet): Display logs from the ingress controller for a specific hostname.
-- [Nais Postgres – Fleet](./src/postgres-fleet-main.libsonnet): Provider operations for CNPG on `monitoring.nais.io`, with one/several/all tenant `*-metrics` datasources (`nais` Mimir org), selected-fleet CPU/memory/PVC totals and separate tenant sections. Select environment, team, Postgres and branch. Separate from the legacy `dashboards/postgres.json` exporter dashboard.
+- [Nais Postgres – Fleet](./src/postgres-fleet-main.libsonnet): Provider operations for CNPG on `monitoring.nais.io`, with one/several/all tenant `*-metrics` datasources (`nais` Mimir org), branch-level CPU/memory/PVC resources with tenant totals in the Capacity section. Select environment, team, Postgres and branch. Separate from the legacy `dashboards/postgres.json` exporter dashboard.
 - [Postgres – Adoption & Capacity](./src/postgres-adoption-main.libsonnet): Compare reported Nais Postgres resources/teams with Cloud SQL instances across selected tenant datasources, with Nais Postgres CPU, memory and storage history. Cloud SQL covers all engines; this is not a complete migration ledger or cost comparison.
 
 ## Development
@@ -70,21 +70,41 @@ Their suggestions come from the first selected tenant; All matches across all
 selected tenants, and custom exact values can be entered for names absent from
 those suggestions. These are shared filters, not a joined inventory dropdown.
 
-The first table sums the **selected fleet** across the explicit overview sources
-below. A second table in each tenant section shows that tenant's footprint:
+The existing **Fleet branch table** stays immediately below the tenant's summary
+stats, with added version and resource columns. Disk and memory graphs stay in
+**Capacity**. There are no separate selected-fleet or per-tenant footprint tables:
 
-- CPU: requested cores, observed CPU rate and summed positive container limits.
-- Memory: requests, working set and positive limits, in GiB.
-- PVC: requested storage, **total filesystem bytes used** and actual kubelet
-  filesystem capacity, in GiB. Each selected `pgdata` PVC is counted once,
-  including replicas and inactive branches; identical names in different
-  namespaces/environments remain separate. This is not SQL table size.
+- Major version: the integer part of CNPG's `cnpg_collector_postgres_version`
+  (for example 18.6 → 18), reported by every discovered pod with agreement across
+  scrapes/pods. Missing, zero, partial or conflicting versions are **Unknown**.
+  This is the observed branch version, not its parent's desired version, and
+  has no sum footer.
+- CPU: requested cores and observed CPU rate, summed across the branch's pods.
+- Memory: requested bytes and container working set, displayed in binary units.
+- PVC: requested storage, actual kubelet filesystem capacity and **total
+  filesystem bytes used**. Each `pgdata` PVC counts once per branch, including
+  replicas and inactive branches; identical names in different namespaces and
+  environments remain separate. This is not SQL table size.
 
-Sample counts sit next to each sum and must be compared with observed pods/PVCs:
-a partial sum is not a complete footprint. Missing measurements are not zero.
-No positive CPU limit is shown as Unknown with zero limit samples, not an
-invented CPU capacity. Missing pod/PVC discovery is still outside this inventory.
-Poolers, operators, backup objects, network and logging are excluded.
+The footer sums only these seven resource columns for this tenant and the
+selected filters. Health signals, percentages and backup ages are not summed.
+With multiple tenants selected, each tenant has its own table and footer;
+there is no combined cross-tenant footprint total or hardcoded source list in
+Fleet. CPU limits are not shown; the existing memory/limit graph is retained.
+
+A resource cell requires measurements for all discovered pods/PVCs in its branch.
+Partial/missing measurements, incomplete pod/PVC mapping discovery or ambiguous
+cross-branch PVC ownership make both the affected cell and its footer **Unknown**, not zero or a partial
+sum. A real measured zero remains zero. To preserve this through Grafana's
+footer calculation, the query uses a finite negative sentinel (`-1e30`), much
+larger in magnitude than any physical footprint; all negative resource results
+are mapped to Unknown. Nulls cannot be used: Grafana's sum skips them and even
+returns zero for all-null fields. Infinite sentinels bypass table value mappings
+in Grafana 13.2.2. This sentinel is confined to the table's resource columns,
+not its health queries, graphs or alert rules.
+
+Missing pod discovery remains outside this inventory. Poolers, operators,
+backup objects, network and logging are excluded.
 
 Operational panels retain observed primary count, actual streaming replicas,
 scrape success, missing SQL telemetry, backup age and worst volume usage per
@@ -95,8 +115,8 @@ The dashboard header has no Source or Postgres documentation links.
 
 #### Interpretation and limits
 
-- Repeated tenant sections and selected-fleet sums are **observations, not a
-  complete cross-tenant inventory**. The branch inventory comes from currently
+- Repeated tenant sections and their branch/resource totals are **observations,
+  not a complete cross-tenant inventory**. The branch inventory comes from currently
   discovered `up{postgres!=""}` targets, including
   failed scrapes. Databases stuck before discovery and branches whose targets
   have all disappeared are not represented. `Unknown`/missing data is not healthy.
@@ -210,21 +230,21 @@ datasource provisioning cannot be discovered by this dashboard.
 
 #### Cross-datasource overview scope
 
-Both dashboards use `src/postgres-overview.libsonnet` and
-`src/monitoring-sources.libsonnet` for explicit Mixed-datasource queries. Grafana
+The Adoption dashboard uses `src/postgres-overview.libsonnet` and
+`src/monitoring-sources.libsonnet` for explicit Mixed-datasource queries. Fleet
+uses dynamic tenant repetition only, with per-tenant table footers. Grafana
 row repetition supports dynamic datasource discovery, but cannot by itself sum
 all repeated sections. The shared source snapshot was discovered and checked
 against all eight central `*-metrics` datasource names/UIDs; it is query scope,
 not a canonical tenant registry. Its size is visible in the overview headings.
 
 Recheck `/api/datasources` before publishing changes. If datasource provisioning
-changes, refresh this snapshot and regenerate **both** dashboards. A newly
+changes, refresh this snapshot and regenerate the Adoption dashboard. A newly
 provisioned source appears automatically in the tenant selectors, but does not
 enter the combined overview until this snapshot is updated. This deliberate
 tradeoff avoids a new collector, datasource, permission or infrastructure change.
-Fleet's overall query gates each source by the selected datasource UID regex
-and applies all database filters before summing. Adoption's overview always
-uses all configured sources/environments; only its detail sections are filtered.
+Adoption's overview always uses all configured sources/environments; only its
+detail sections are filtered. Fleet has no such overview or snapshot dependency.
 
 Overview table counts preserve missing data: sources with no usable inventory
 contribute no resource/team value, while remaining in the source/coverage counts.
@@ -294,14 +314,25 @@ namespace/environment isolation, inactive branches, partial/absent/zero metrics,
 datasource/filter selection, overview team deduplication, overlap and coverage.
 The existing 24 fleet and 23 adoption semantic cases also pass.
 
+The compact Fleet layout adds 42 read-only branch-resource/version semantic cases:
+replica sums, major/minor versions and missing/conflicting version reports,
+duplicate scrapes, shared/ambiguous PVC ownership, partial and absent metrics,
+genuine zero, failed scrapes, branch filtering and namespace/
+environment isolation. Its combined table query is checked against all eight
+then-provisioned tenant datasources, and the 24 existing health cases still pass.
+
 An isolated Grafana 13.2.2 browser preview uses real read-only central datasource
-queries: default Fleet/NAV, two tenants, All eight tenants, a custom team filter
-absent from the first tenant's suggestions, and Adoption filtered/all details.
-It checks actual summary rows, not just HTTP success. All repeats every Fleet
-operational section, alongside its footprint tables. Source/doc links are absent;
-no NaN, query or page errors occurred. The central dashboard resource versions
-remain unchanged during preview. Central Git Sync and actual rendering must
-still be checked after any publication.
+queries for Fleet/NAV, two tenants, All eight tenants and a custom shared filter.
+It checks the Fleet table placement and observed/missing major-version display,
+compares all seven resource footers against the exact query sums, checks that
+health/version columns have no sums, and exercises all-missing/partially missing memory
+and genuine zero CPU with query-expression substitutions confined to the preview
+harness. All repeats every operational section, with one Capacity branch table
+per tenant, without separate footprint tables. Source/doc links are absent;
+no NaN/infinity, query or page errors occurred. The central dashboard resource
+versions remain unchanged during preview. The Adoption resource and ingress
+output are unchanged by this Fleet refactoring. Central Git Sync and actual
+rendering must still be checked after any publication.
 
 ## License
 

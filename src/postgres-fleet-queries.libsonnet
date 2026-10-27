@@ -28,6 +28,15 @@ local backupAge = knownOrUnknown('time() - (' + backup + ' > 0)');
 local scrape = '100 * ' + aggregate('sum', labels, targets) + ' / ' + aggregate('count', labels, targets);
 local telemetry = aggregate('sum', labels, inventory + ' unless on (' + pods + ') ' + podMetric('cnpg_collector_up')) + ' or (0 * ' + branches + ')';
 local errors = aggregate('max', labels, metric('cnpg_collector_last_collection_error'));
+// CNPG reports a numeric major.minor (e.g. 18.6), not server_version_num.
+// Require every discovered pod to report the same positive major; never infer
+// a branch version from its parent resource or choose a side during upgrades.
+local versions = '(floor(' + metric('cnpg_collector_postgres_version') + ') > 0) and on (' + pods + ') ' + inventory;
+local major = aggregate('max', labels, versions);
+local majorVersion = knownOrUnknown(major
+                                    + ' and on (' + labels + ') (' + major + ' == on (' + labels + ') ' + aggregate('min', labels, versions) + ')'
+                                    + ' and on (' + labels + ') (' + aggregate('count', labels, aggregate('group', pods, versions))
+                                    + ' == on (' + labels + ') ' + aggregate('count', labels, inventory) + ')');
 // Footprint uses selected discovered DB pods, not the worst branch/pod.
 local selectedPods = aggregate('group', podKey, inventory);
 local selectedVolumes = aggregate('group', pvcKey, podVolumes + ' * on (' + podKey + ') group_left() ' + selectedPods);
@@ -60,6 +69,37 @@ local footprint = [
     capacity: volumeValue('kubelet_volume_stats_capacity_bytes'),
   },
 ];
+// Retain branch ownership while deduplicating each pgdata claim. Summing pod
+// mappings directly would count a shared claim more than once in a branch.
+local branchVolumes = aggregate('group',
+                                pvcKey + ', team, postgres, branch',
+                                podVolumes + ' * on (' + podKey + ') group_left(team, postgres, branch) ' + inventory);
+local branchContainer(expr) = '(' + expr + ') * on (' + podKey + ') group_left(team, postgres, branch) ' + inventory;
+local volumeDiscovery = aggregate('count', labels, aggregate('group',
+                                                             pods,
+                                                             podVolumes + ' * on (' + podKey + ') group_left(team, postgres, branch) ' + inventory))
+                        + ' == on (' + labels + ') ' + aggregate('count', labels, inventory);
+local branchVolume(name) = '(' + volumeMetric(name) + ' * on (' + pvcKey + ') group_right() ' + branchVolumes
+                           + ') and on (' + labels + ') (' + volumeDiscovery + ')'
+                           + ' and on (' + pvcKey + ') (' + aggregate('count', pvcKey, branchVolumes) + ' == 1)';
+// A null is skipped by Grafana sum (even all-null columns sum to zero). Use a
+// finite negative sentinel, larger in magnitude than any physical footprint,
+// so missing measurements also make the footer negative and map to Unknown.
+// Infinity is unsuitable: Grafana's table bypasses mappings for infinite values.
+// Only fully measured branches contribute a non-negative value, including zero.
+local branchSum(expr, objects, scale=1) = '((' + aggregate('sum', labels, expr)
+                                          + ' and on (' + labels + ') (' + aggregate('count', labels, expr)
+                                          + ' == on (' + labels + ') ' + aggregate('count', labels, objects) + ')) / ' + scale
+                                          + ') or (-1e30 * ' + branches + ')';
+local branchResources = [
+  { name: 'CPU requested', expr: branchSum(branchContainer(footprint[0].requested), inventory) },
+  { name: 'CPU used', expr: branchSum(branchContainer(footprint[0].used), inventory) },
+  { name: 'Memory requested', expr: branchSum(branchContainer(footprint[1].requested), inventory) },
+  { name: 'Memory used', expr: branchSum(branchContainer(footprint[1].used), inventory) },
+  { name: 'PVC requested', expr: branchSum(branchVolume('kube_persistentvolumeclaim_resource_requests_storage_bytes'), branchVolumes) },
+  { name: 'PVC capacity', expr: branchSum(branchVolume('kubelet_volume_stats_capacity_bytes'), branchVolumes) },
+  { name: 'PVC used', expr: branchSum(branchVolume('kubelet_volume_stats_used_bytes'), branchVolumes) },
+];
 local capacitySignals(f) = [
   { name: 'Requested', expr: 'sum(' + f.requested + ') / ' + f.scale },
   { name: 'Used', expr: 'sum(' + f.used + ') / ' + f.scale },
@@ -70,6 +110,7 @@ local capacitySignals(f) = [
   { name: 'Observed pods / PVCs', expr: 'count(' + f.objects + ')' },
 ];
 local summary = [
+  { name: 'Major version', expr: majorVersion },
   { name: 'Observed primaries', expr: primaries },
   { name: 'Streaming replicas', expr: streaming },
   { name: 'Scrapes OK', expr: scrape },
@@ -84,6 +125,7 @@ local summary = [
     for s in capacitySignals(f)
   ]),
   branches: branches,
+  majorVersion: majorVersion,
   primaries: primaries,
   streaming: streaming,
   backupAge: backupAge,
@@ -91,7 +133,7 @@ local summary = [
   diskUsage: diskUsage,
   summary: std.join(' or ', [
     'label_replace(label_join((' + item.expr + '), "resource", " / ", "k8s_cluster_name", "team", "postgres", "branch"), "signal", "' + item.name + '", "", "")'
-    for item in summary
+    for item in summary + branchResources
   ]),
   noPrimary: primaries + ' != 1',
   noReplica: streaming + ' < 1',
