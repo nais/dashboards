@@ -1151,9 +1151,22 @@
                      }
                   ],
                   "noValue": "Unknown",
-                  "unit": "dateTimeAsIso"
+                  "unit": "short"
                },
-               "overrides": [ ]
+               "overrides": [
+                  {
+                     "matcher": {
+                        "id": "byName",
+                        "options": "First recoverability point (reported)"
+                     },
+                     "properties": [
+                        {
+                           "id": "unit",
+                           "value": "dateTimeAsIso"
+                        }
+                     ]
+                  }
+               ]
             },
             "gridPos": {
                "h": 7,
@@ -1444,9 +1457,22 @@
                      }
                   ],
                   "noValue": "Unknown",
-                  "unit": "dateTimeAsIso"
+                  "unit": "short"
                },
-               "overrides": [ ]
+               "overrides": [
+                  {
+                     "matcher": {
+                        "id": "byName",
+                        "options": "Last failed backup (reported)"
+                     },
+                     "properties": [
+                        {
+                           "id": "unit",
+                           "value": "dateTimeAsIso"
+                        }
+                     ]
+                  }
+               ]
             },
             "gridPos": {
                "h": 7,
@@ -1773,7 +1799,20 @@
                   "noValue": "Unknown",
                   "unit": "short"
                },
-               "overrides": [ ]
+               "overrides": [
+                  {
+                     "matcher": {
+                        "id": "byName",
+                        "options": "Postgres restarts in selected time range"
+                     },
+                     "properties": [
+                        {
+                           "id": "unit",
+                           "value": "short"
+                        }
+                     ]
+                  }
+               ]
             },
             "gridPos": {
                "h": 7,

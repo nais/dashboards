@@ -57,8 +57,11 @@ local stat(id, title, expr, x, w, risk=true) =
   };
 local countRisk(expr) = 'count(' + expr + ') or (0 * count(' + q.branches + '))';
 local table(id, title, expr, x, y, unit, description) =
-  panel(id, title, 'table', expr, x, y, unit=unit, description=description)
+  panel(id, title, 'table', expr, x, y, description=description)
   + {
+    fieldConfig+: {
+      overrides: [{ matcher: { id: 'byName', options: title }, properties: [{ id: 'unit', value: unit }] }],
+    },
     options: { showHeader: true, cellHeight: 'sm' },
     transformations: [{ id: 'organize', options: {
       excludeByName: { Time: true, namespace: true },
