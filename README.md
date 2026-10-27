@@ -6,6 +6,7 @@ This repository contains Grafana dashboards for monitoring applications running 
 
 - [Ingress Logs](./src/ingress-main.libsonnet): Display logs from the ingress controller for a specific hostname.
 - [Nais Postgres – Fleet](./src/postgres-fleet-main.libsonnet): Provider operations for CNPG on `monitoring.nais.io`, using a tenant's `*-metrics` datasource (`nais` Mimir org). Select environment, team, Postgres and branch. Separate from the legacy `dashboards/postgres.json` exporter dashboard.
+- [Postgres – Adoption & Capacity](./src/postgres-adoption-main.libsonnet): Compare reported Nais Postgres resources/teams with Cloud SQL instances across selected tenant datasources, with Nais Postgres CPU, memory and storage history. Cloud SQL covers all engines; this is not a complete migration ledger or cost comparison.
 
 ## Development
 
@@ -158,6 +159,84 @@ To pause the pilot, disable this repository's sync; this does not remove existin
 provisioned dashboards. For rollback, revert the dashboard change in Git and
 let it sync. Do not delete the repository or its managed folder as a first step:
 that can delete managed resources. Leave all other dashboards and folders alone.
+
+### Postgres adoption and capacity dashboard
+
+`make compile` also generates `dashboards/monitoring/postgres-adoption.json`
+(UID `nais-postgres-adoption`). The source is
+`src/postgres-adoption-{main,queries}.libsonnet`, using the same resource wrapper
+and one-way Git Sync path as the fleet dashboard. No additional repository,
+collector, datasource, permission or infrastructure change is required. Pushing
+this generated file to the branch already followed by Git Sync will publish it;
+local generation and preview alone do not publish anything.
+
+The **Tenants** selector discovers all provisioned Prometheus datasources matching
+`*-metrics`, including platform/test tenants, and defaults to all. Each selected
+tenant gets a repeated section; environment filtering applies to each section.
+Counts stay separate by environment. There is deliberately no cross-tenant or
+cross-environment total: an unobserved environment must not silently disappear
+from a claimed complete total. A tenant missing from datasource provisioning
+cannot be discovered by this dashboard.
+
+#### Sources and counting rules
+
+- **Nais Postgres resources/branches:** `pgrator_resource_info`, deduplicated by
+  environment, namespace and resource name for `postgres.nais.io` and
+  `postgresbranch.nais.io` separately. Branches, replicas and SQL sessions are
+  not counted as logical Postgres resources. Resources without database pods can
+  still be reported by the controller.
+- **Cloud SQL (all engines):** `configconnector_applied_resources_total` for
+  `SQLInstance.sql.cnrm.cloud.google.com`, summed across namespaces and Ready
+  condition reasons, with duplicate scrape sources deduplicated. Despite its
+  name, the recorder resets/rebuilds this **gauge** from its cached Kubernetes
+  resources; it is not a cumulative event counter and must not use `rate()`.
+  It reports KCC resources, not authoritative GCP inventory, SQL databases, or
+  HA nodes. It exposes neither instance identities, database engine nor
+  configured CPU/memory/storage. Failed/updating resources remain in the count.
+  Periodic rebuilds can temporarily produce partial or absent inventories.
+- **Teams:** distinct reported namespaces within each environment, not a joined
+  registry of application teams. A team using both products appears in both
+  product counts; the overlap is reported separately. The same team in dev and
+  prod is not a cross-environment unique-team total.
+- **Unknown:** a failed source scrape or absent/empty inventory is not zero,
+  even when the exporter itself is up. The table maps the `-1` sentinel to
+  `Unknown`; charts omit unknown observations. A known non-overlap between two
+  populated inventories can be zero. Source scrape status is shown separately,
+  but does not establish a synced/complete controller cache. If both sources
+  disappear for an environment, even the environment row may be absent.
+
+History is the reported metric history available in Mimir, not reconstructed
+inventory before collection began. The default is 30 days. Changes are net
+reported counts, not counts of create/delete events or evidence that a team
+migrated. Cumulative watcher add/remove counters are not used as inventory.
+
+#### Capacity and remaining coverage gaps
+
+CPU/memory are Kubernetes requests and observed CPU rate/container working set
+for discovered CNPG `postgres` containers. Storage is requested `pgdata` PVC size
+and kubelet filesystem bytes used, joined through pod/PVC metadata. Each PVC is
+counted once. All discovered branches and replicas contribute to the physical
+footprint; environment/namespace labels keep equal pod/PVC names separate.
+Requests are not node allocation, memory limits or actual expanded filesystem
+capacity. Poolers, operators, backup objects, network and logging are excluded.
+
+The first version does **not** invent Cloud SQL capacity, PostgreSQL-only Cloud
+SQL counts, monetary costs or savings from Kubernetes requests. Those need an
+engine-aware instance inventory and a verified Cloud SQL capacity/usage source,
+plus an explicit cost/allocation model covering CPU, memory, disk, backup,
+network and logging. Coordinate with the separate Postgres cost-basis delivery
+and [nais/api#571](https://github.com/nais/api/issues/571). An authoritative empty
+inventory also needs an explicit synced/complete signal; scrape success alone
+cannot distinguish zero resources from an unpopulated exporter.
+
+During implementation, every exported query was evaluated against all eight
+then-provisioned tenant datasources; the chart queries were also evaluated over
+30 days. Twenty-three synthetic read-only PromQL cases checked deduplication,
+unknown/zero handling, failed sources, environment isolation, overlap and
+pod/PVC capacity accounting. An isolated Grafana 13.2.2 browser preview used real
+read-only central datasource queries to check repeated tenants, NAV/prod and a
+tenant without a reported Postgres inventory. Central Git Sync and rendering
+must still be checked after publication.
 
 ## License
 
